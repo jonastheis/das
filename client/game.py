@@ -1,7 +1,8 @@
 from __future__ import print_function
 import threading, random, time
 from transport import ClientTransport
-# from common.network_util import read_encoded
+from command import MoveCommand
+from common.constants import *
 
 class Game:
     def __init__(self):
@@ -97,8 +98,8 @@ class Game:
 
     def simulate_player(self, r, c):
         value = random.choice([1, -1])
-        direction = random.choice(['h', 'v'])
-        return {'type': 'move', 'direction': direction, 'value': value, 'user': (self.map[r][c]).id}
+        direction = random.choice([DIRECTIONS.V, DIRECTIONS.h])
+        return MoveCommand((self.map[r][c]).id, value, direction)
 
     def simulate_dragon(self, e, c):
         pass

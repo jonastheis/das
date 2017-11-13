@@ -1,4 +1,5 @@
 import json, math
+from common.constants import *
 
 class Command:
     def __init__(self, type, user_id):
@@ -43,7 +44,7 @@ class Command:
 
 class MoveCommand(Command):
     def __init__(self, user_id, value, direction):
-        Command.__init__(self, 'move', user_id)
+        Command.__init__(self, ACTIONS.MOVE, user_id)
         self.value = value
         self.direction = direction
 
@@ -64,9 +65,9 @@ class MoveCommand(Command):
         target_row = _row
         target_col = _col
 
-        if self.direction == 'v':
+        if self.direction == DIRECTIONS.V:
             target_row += self.value
-        elif self.direction == 'h':
+        elif self.direction == DIRECTIONS.H:
             target_col += self.value
 
         # Check if target pos is full
@@ -96,7 +97,7 @@ class MoveCommand(Command):
 
 class AttackCommand(Command):
     def __init__(self, user_id, target_id):
-        Command.__init__(self, 'attack', user_id)
+        Command.__init__(self, ACTIONS.ATTACK, user_id)
         self.target_id = target_id
 
     def apply(self, game):
@@ -132,7 +133,7 @@ class AttackCommand(Command):
 
 class HealCommand(Command):
     def __init__(self, user_id, target_id):
-        Command.__init__(self, 'heal', user_id)
+        Command.__init__(self, ACTIONS.HEAL, user_id)
         self.target_id = target_id
 
     def apply(self, game):

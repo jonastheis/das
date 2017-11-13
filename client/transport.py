@@ -1,12 +1,13 @@
 import socket, threading, select, sys
 from common.network_util import read_packet, packetize
+from common.constants import *
 
 class ClientTransport:
     def __init__(self, game):
         self.game = game
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect(('localhost', 8081))
+        self.sock.connect((TRANSPORT.host, TRANSPORT.port))
         threading.Thread(target=self.check_recv).start()
 
     def check_recv(self):
