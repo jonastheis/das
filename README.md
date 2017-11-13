@@ -7,6 +7,7 @@ $ python server/network/server.py
 $ python client/test.py
 ```
 
+
 ## Known Issues:
 
 ```
@@ -26,3 +27,5 @@ IndexError: list index out of range
 ```
 
 > Probably because move is not checked on boundaries
+
+---
