@@ -94,7 +94,6 @@ class MoveCommand(Command):
         return Command.__str__(self) + "[value {} direction {}]".format(self.value, self.direction)
 
 
-
 class AttackCommand(Command):
     def __init__(self, user_id, target_id):
         Command.__init__(self, 'attack', user_id)

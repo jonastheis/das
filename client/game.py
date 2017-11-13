@@ -1,5 +1,6 @@
 from __future__ import print_function
-import math, json, socket, threading, select, sys, random, time
+import threading, random, time
+from transport import ClientTransport
 # from common.network_util import read_encoded
 
 class Game:
@@ -12,9 +13,8 @@ class Game:
         self.commands = []
         self.users = []
 
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect(('localhost', 8081))
-        threading.Thread(target=self.sock_check_for_update).start()
+        self.transport_layer = ClientTransport(self)
+
 
     def __str__(self):
         _str = ""
@@ -24,21 +24,6 @@ class Game:
                 _str += "\t"
             _str += "\n"
         return _str
-
-    def sock_check_for_update(self):
-        print("Thread for listening is started\n")
-        while True:
-            socket_list = [self.sock]
-            read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
-            for sock in read_sockets:
-                # incoming message from remote server
-                data = sock.recv(1024)
-                # data = read_encoded(sock)
-                if not data:
-                    print('\nDisconnected from server')
-                    sys.exit()
-                else:
-                    print("received" , data)
 
     def add_user(self, p, r, c):
         if self.map[r][c] == 0:
@@ -63,7 +48,7 @@ class Game:
             command.apply(self)
 
             # Send the command to the server to be broadcasted to everyone
-            self.sock.send(command.to_json())
+            self.transport_layer.send_data(command.to_json())
             self.commands = self.commands[1:]
         else:
             return
