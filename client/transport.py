@@ -1,4 +1,5 @@
 import socket, threading, select, sys
+from common.network_util import read_packet, packetize
 
 class ClientTransport:
     def __init__(self, game):
@@ -14,8 +15,8 @@ class ClientTransport:
             read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
             for sock in read_sockets:
                 # incoming message from remote server
-                data = sock.recv(1024)
-                # data = read_encoded(sock)
+                # data = sock.recv(1024)
+                data = read_packet(sock)
                 if not data:
                     print('\nDisconnected from server')
                     sys.exit()
@@ -25,7 +26,7 @@ class ClientTransport:
 
     def send_data(self, data):
         try:
-            self.sock.sendall(data)
+            self.sock.sendall(packetize(data))
         except Exception as e:
-            print("Error while sending data ", str(e))
+            print("Error while sending data " +  str(e))
 

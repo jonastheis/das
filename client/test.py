@@ -3,7 +3,6 @@ import user
 import command
 import sys
 
-
 g = game.Game()
 
 h = user.User("p")
