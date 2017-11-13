@@ -1,24 +1,30 @@
 import game
 import user
+import command
+import sys
 
 
 g = game.Game()
 
-h = user.Player("p")
-h1 = user.Player("p")
+h = user.User("p")
+h1 = user.User("p")
 g.add_user(h, 0, 0)
 g.add_user(h1, 2, 0)
-d = user.Player("d")
+d = user.User("d")
 g.add_user(d, 1, 0)
 
 
 g.commands = [
-    {'type': 'move', 'direction': 'h', 'value': 1, 'user': h.id},
-    {'type': 'attack', 'target': d.id, 'user': h.id},
-    {'type': 'attack', 'target': h1.id, 'user': d.id},
-    {'type': 'move', 'direction': 'h', 'value': 1, 'user': h.id},
-    {'type': 'heal', 'target': h1.id, 'user': h.id}
+    command.MoveCommand(h.id, 1, 'h'),
+    command.AttackCommand(h.id, d.id),
+    command.AttackCommand(d.id, h1.id),
+    command.MoveCommand(h.id, 1, 'h'),
+    command.HealCommand(h.id, h1.id)
 ]
+try:
+    g.emulate_all()
+    # g._simulate(100)
+    # g.emulate(1)
 
-g._simulate(100)
-g.emulate(.5)
+except KeyboardInterrupt:
+    sys.exit()

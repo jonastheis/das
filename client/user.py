@@ -1,7 +1,7 @@
 import sys
 import random
 
-class Player:
+class User:
     def __init__(self, type):
         if type == "d":
             self.hp = random.randint(50, 100)
@@ -15,6 +15,7 @@ class Player:
             print("Wrong player type")
             sys.exit()
 
+        self.pos = []
         self.MAX_HP = self.hp
         self.type = type
         self.id = random.randint(0, 1000)

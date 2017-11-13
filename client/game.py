@@ -9,8 +9,9 @@ class Game:
 
         self.map = [[0 for j in range(self.col)] for i in range(self.row)]
 
-        self.active_users = 0
         self.commands = []
+        self.users = []
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect(('localhost', 8081))
         threading.Thread(target=self.sock_check_for_update).start()
@@ -42,7 +43,8 @@ class Game:
     def add_user(self, p, r, c):
         if self.map[r][c] == 0:
             self.map[r][c] = p
-            self.active_users += 1
+            p.pos = [r, c]
+            self.users.append(p)
             return True
         else:
             return False
@@ -51,105 +53,20 @@ class Game:
         if self.map[r][c] == 0:
             return False
         else:
+            self.users.remove(self.map[r][c])
             self.map[r][c] = 0
-            self.active_users -= 1
             return True
 
     def epoch(self):
         if len(self.commands):
             command = self.commands[0]
-            self.apply_command(command)
+            command.apply(self)
 
             # Send the command to the server to be broadcasted to everyone
-            self.sock.send(json.dumps(command))
+            self.sock.send(command.to_json())
             self.commands = self.commands[1:]
         else:
             return
-
-    def apply_command(self, command):
-        if command['type'] == 'move':
-            _user, _row, _col = self.get_user_by_id(command['user'])
-
-            if _user == 0 :
-                print("No Player Found")
-                return
-
-            # Dragons cannot move
-            if _user.type == 'd':
-                print("Dragons cannot move")
-                return
-
-            target_row = _row
-            target_col = _col
-
-
-            if command['direction'] == 'v':
-                target_row += command['value']
-            elif command['direction'] == 'h':
-                target_col += command['value']
-
-            if self.map[target_row][target_col] != 0:
-                print("Position [{}, {}] already full".format(target_row, target_col))
-                return
-
-            self.map[_row][_col] = 0
-            self.map[target_row][target_col] = _user
-
-        elif command['type'] == 'attack':
-            attacker, attacker_row, attacker_col = self.get_user_by_id(command['user'])
-            target, target_row, target_col = self.get_user_by_id(command['target'])
-
-            if attacker == 0:
-                print("Attacker not found")
-                return
-
-            if target == 0:
-                print("Target not found")
-                return
-
-            distance = self.get_distance([attacker_row, attacker_col], [target_row, target_col])
-
-            if distance > 2:
-                print("Attack distance bigger than 2")
-                return
-
-            target.hp -= attacker.ap
-
-            if target.hp <= 0:
-                self.remove_user(target_row, target_col)
-
-        elif command['type'] == 'heal':
-            healer, healer_row, healer_col = self.get_user_by_id(command['user'])
-            target, target_row, target_col = self.get_user_by_id(command['target'])
-
-            if healer == 0:
-                print("Attacker not found")
-                return
-
-            if target == 0:
-                print("Target not found")
-                return
-
-            distance = self.get_distance([healer_row, healer_col], [target_row, target_col])
-
-            if distance > 5:
-                print("Heal distance bigger than 5")
-                return
-
-            heal_amount = healer.ap
-            target.hp += heal_amount
-            if target.hp > target.MAX_HP :
-                target.hp = target.MAX_HP
-
-    def get_user_by_id(self, id):
-        for i in range(self.row):
-            for j in range(self.col):
-                if self.map[i][j] != 0 and self.map[i][j].id == id :
-                    return self.map[i][j], i, j
-        return 0 ,-1 ,-1
-
-    def get_distance(self, pos, sop):
-        return math.fabs(pos[0] - sop[0]) + math.fabs(pos[1] - sop[1])
 
     def emulate_all(self):
         """
