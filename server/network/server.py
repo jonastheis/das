@@ -1,7 +1,7 @@
 import socket
 import threading
 import select
-# from common.network_util import read_encoded
+from common.network_util import read_packet, packetize
 
 class ThreadedServer(object):
     def __init__(self, host, port):
@@ -31,8 +31,8 @@ class ThreadedServer(object):
             socket_list = [client]
             read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
             for sock in read_sockets:
-                data = sock.recv(1024)
-                # data = read_encoded(sock)
+                # data = sock.recv(1024)
+                data = read_packet(sock)
                 if data:
                     print("received" , data , id)
                     self.broadcast(data)
@@ -42,7 +42,7 @@ class ThreadedServer(object):
 
     def broadcast(self, data):
         for (addr, sock) in self.clients.items():
-            sock.send(data)
+            sock.sendall(packetize(data))
 
 
 
