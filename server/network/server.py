@@ -24,27 +24,37 @@ class ThreadedServer(object):
             # not sure if this is good or not
             client.settimeout(60)
 
-            threading.Thread(target = self.HandleClient, args = (client,id)).start()
+            threading.Thread(target = self.handle_client, args = (client,id)).start()
+            # self.handle_client(client, id)
 
-    def HandleClient(self, client, id):
+    def handle_client(self, client, id):
         while True:
             socket_list = [client]
             read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
             for sock in read_sockets:
                 # data = sock.recv(1024)
-                data = read_packet(sock)
+                try:
+                    data = read_packet(sock)
+                except BaseException as e:
+                    print("Error " + str(e))
+                    print("Removing socket...")
+                    print(id + " disconnected")
+                    del self.clients[id]
+
                 if data:
                     print("received" , data , id)
-                    self.broadcast(data)
+                    self.broadcast(packetize(data))
                 else:
                     print(id + " disconnected")
                     del self.clients[id]
 
     def broadcast(self, data):
         for (addr, sock) in self.clients.items():
-            sock.sendall(packetize(data))
+            sock.sendall(data)
 
 
 
 port_num = 8081
-ThreadedServer('',port_num).listen()
+server = ThreadedServer('',port_num)
+print("Server listening on port " + str(port_num))
+server.listen()

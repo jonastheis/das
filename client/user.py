@@ -1,13 +1,14 @@
 import sys
 import random
+from common.constants import USERS
 
 class User:
     def __init__(self, type):
-        if type == "d":
+        if type == USERS.DRAGON:
             self.hp = random.randint(50, 100)
             self.ap = random.randint(5, 20)
 
-        elif type == "p":
+        elif type == USERS.PLAYER:
             self.hp = random.randint(10, 20)
             self.ap = random.randint(1, 10)
 

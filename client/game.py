@@ -78,7 +78,11 @@ class Game:
         while True:
             time.sleep(1/command_per_second)
             if len(self.commands):
+                print("##################")
+                print(self.commands[0])
                 self.epoch()
+                print(self.__str__())
+                print("##################")
             else:
                 continue
 
@@ -89,17 +93,15 @@ class Game:
         threading.Thread(target=self._simulate, args=(iterations,)).start()
 
     def _simulate(self, iterations):
-        for iter in range(iterations):
-            for i in range(self.row):
-                for j in range(self.col):
-                    if self.map[i][j] != 0 :
-                        new_command = self.simulate_player(i,j)
-                        self.commands.append(new_command)
+        for user in self.users:
+            if user.type == USERS.PLAYER:
+                new_command = self.simulate_player(user)
+                self.commands.append(new_command)
 
-    def simulate_player(self, r, c):
+    def simulate_player(self, p):
         value = random.choice([1, -1])
-        direction = random.choice([DIRECTIONS.V, DIRECTIONS.h])
-        return MoveCommand((self.map[r][c]).id, value, direction)
+        direction = random.choice([DIRECTIONS.V, DIRECTIONS.H])
+        return MoveCommand(p.id, value, direction)
 
-    def simulate_dragon(self, e, c):
+    def simulate_dragon(self, d):
         pass

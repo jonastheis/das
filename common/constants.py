@@ -13,3 +13,7 @@ class TRANSPORT:
     host = 'localhost'
     port = 8081
 
+class USERS:
+    PLAYER = 'p'
+    DRAGON = 'd'
+

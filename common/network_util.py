@@ -17,7 +17,7 @@ def read_packet(sock):
     while True:
         data = sock.recv(1)
         if not data:
-            raise RuntimeError("Connection Error")
+            raise RuntimeError("Connection Error While reading.")
         elif data != '\n':
             recvd += data
         else:

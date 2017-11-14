@@ -51,7 +51,7 @@ class MoveCommand(Command):
 
     def apply(self, game):
         _user = self.get_user_by_id(game, self.user_id)
-        _row, _col = _user.pos
+
 
         if _user == 0:
             print("No Player Found")
@@ -61,6 +61,8 @@ class MoveCommand(Command):
         if _user.type == 'd':
             print("Dragons cannot move")
             return False
+
+        _row, _col = _user.pos
 
         target_row = _row
         target_col = _col
