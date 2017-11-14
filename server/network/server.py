@@ -1,7 +1,7 @@
 import socket
 import threading
 import select
-from common.network_util import read_packet, packetize
+from common.network_util import read_packet, pack
 
 class ThreadedServer(object):
     def __init__(self, host, port):
@@ -35,16 +35,16 @@ class ThreadedServer(object):
                 # data = sock.recv(1024)
                 try:
                     data = read_packet(sock)
+
+                    if data:
+                        print("received", data, id)
+                        self.broadcast(pack(data))
+                    else:
+                        print(id + " disconnected")
+                        del self.clients[id]
                 except BaseException as e:
                     print("Error " + str(e))
                     print("Removing socket...")
-                    print(id + " disconnected")
-                    del self.clients[id]
-
-                if data:
-                    print("received" , data , id)
-                    self.broadcast(packetize(data))
-                else:
                     print(id + " disconnected")
                     del self.clients[id]
 

@@ -1,5 +1,5 @@
 import socket, threading, select, sys
-from common.network_util import read_packet, packetize
+from common.network_util import read_packet, pack
 from common.constants import *
 
 class ClientTransport:
@@ -27,7 +27,7 @@ class ClientTransport:
 
     def send_data(self, data):
         try:
-            self.sock.sendall(packetize(data))
+            self.sock.sendall(pack(data))
         except Exception as e:
             print("Error while sending data " +  str(e))
 

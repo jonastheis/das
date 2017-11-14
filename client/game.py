@@ -1,8 +1,8 @@
-from __future__ import print_function
 import threading, random, time
-from transport import ClientTransport
-from command import MoveCommand
+from .transport import ClientTransport
+from .command import MoveCommand
 from common.constants import *
+
 
 class Game:
     def __init__(self):
@@ -15,7 +15,6 @@ class Game:
         self.users = []
 
         self.transport_layer = ClientTransport(self)
-
 
     def __str__(self):
         _str = ""
