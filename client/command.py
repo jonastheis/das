@@ -72,14 +72,15 @@ class MoveCommand(Command):
         elif self.direction == DIRECTIONS.H:
             target_col += self.value
 
-        # Check if target pos is full
-        if game.map[target_row][target_col] != 0:
-            print("Position [{}, {}] already full".format(target_row, target_col))
-            return False
 
         # Check if target is in boundaries of the map
         if target_row >= game.row or target_col >= game.col or target_row < 0 or target_col < 0:
             print("Position [{}, {}] out of scope of game".format(target_row, target_col))
+            return False
+
+        # Check if target pos is full
+        if game.map[target_row][target_col] != 0:
+            print("Position [{}, {}] already full".format(target_row, target_col))
             return False
 
         game.map[_row][_col] = 0

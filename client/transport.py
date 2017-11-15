@@ -3,12 +3,16 @@ from common.network_util import read_packet, pack
 from common.constants import *
 
 class ClientTransport:
-    def __init__(self, game):
+    def __init__(self, game, port=TRANSPORT.port, host=TRANSPORT.host):
         self.game = game
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((TRANSPORT.host, TRANSPORT.port))
-        threading.Thread(target=self.check_recv).start()
+        self.sock.connect((host, port))
+        transport_thread = threading.Thread(target=self.check_recv)
+        transport_thread.daemon = True
+        transport_thread.start()
+
+        print("Transport Client listening on port {}".format(port))
 
     def check_recv(self):
         while True:
@@ -16,7 +20,6 @@ class ClientTransport:
             read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
             for sock in read_sockets:
                 # incoming message from remote server
-                # data = sock.recv(1024)
                 data = read_packet(sock)
                 if not data:
                     print('\nDisconnected from server')

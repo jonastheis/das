@@ -4,7 +4,7 @@ import select
 from common.network_util import read_packet, pack
 
 class ThreadedServer(object):
-    def __init__(self, host, port):
+    def __init__(self, port, host="127.0.0.1"):
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -12,6 +12,8 @@ class ThreadedServer(object):
         self.sock.bind((self.host, self.port))
 
         self.clients = dict()
+
+        print("Server listening on port " + str(port))
 
     def listen(self):
         self.sock.listen(128)
@@ -28,7 +30,8 @@ class ThreadedServer(object):
             # self.handle_client(client, id)
 
     def handle_client(self, client, id):
-        while True:
+        up = True
+        while up:
             socket_list = [client]
             read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
             for sock in read_sockets:
@@ -41,20 +44,24 @@ class ThreadedServer(object):
                         self.broadcast(pack(data))
                     else:
                         print(id + " disconnected")
-                        del self.clients[id]
+                        if (id in self.clients):
+                            del self.clients[id]
+                            up = False
+
                 except BaseException as e:
                     print("Error " + str(e))
-                    print("Removing socket...")
-                    print(id + " disconnected")
-                    del self.clients[id]
+                    if (id in self.clients):
+                        print(id + " disconnected")
+                        del self.clients[id]
+                        up = False
 
     def broadcast(self, data):
         for (addr, sock) in self.clients.items():
             sock.sendall(data)
 
 
+if __name__ == '__main__':
+    port_num = 8081
+    server = ThreadedServer(port_num, '')
 
-port_num = 8081
-server = ThreadedServer('',port_num)
-print("Server listening on port " + str(port_num))
-server.listen()
+    server.listen()

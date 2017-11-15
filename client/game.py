@@ -5,7 +5,7 @@ from common.constants import *
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, port=TRANSPORT.port, host=TRANSPORT.host):
         self.row = 5
         self.col = 5
 
@@ -14,7 +14,7 @@ class Game:
         self.commands = []
         self.users = []
 
-        self.transport_layer = ClientTransport(self)
+        self.transport_layer = ClientTransport(self, port, host)
 
     def __str__(self):
         _str = ""
@@ -74,6 +74,7 @@ class Game:
         threading.Thread(target=self._emulate, args=(commands_per_second,)).start()
 
     def _emulate(self, command_per_second):
+        print("Current number of commands for emulation {}".format(len(self.commands)))
         while True:
             time.sleep(1/command_per_second)
             if len(self.commands):
@@ -92,10 +93,11 @@ class Game:
         threading.Thread(target=self._simulate, args=(iterations,)).start()
 
     def _simulate(self, iterations):
-        for user in self.users:
-            if user.type == USERS.PLAYER:
-                new_command = self.simulate_player(user)
-                self.commands.append(new_command)
+        for i in range(iterations):
+            for user in self.users:
+                if user.type == USERS.PLAYER:
+                    new_command = self.simulate_player(user)
+                    self.commands.append(new_command)
 
     def simulate_player(self, p):
         value = random.choice([1, -1])
