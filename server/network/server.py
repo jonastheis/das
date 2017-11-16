@@ -1,6 +1,7 @@
 import socket
 import hashlib
 import time
+import threading
 from .client import Client
 from server.core.command import NewPlayerCommand
 
@@ -17,6 +18,9 @@ class ThreadedServer(object):
 
         self.clients = dict()
 
+        # start intermediate to assign responses to clients
+        threading.Thread(target=self.dispatch_responses).start()
+
     def listen(self):
         self.sock.listen()
         print("Server listening on port", self.port)
@@ -32,9 +36,10 @@ class ThreadedServer(object):
             # send new player command to game engine
             self.request_command(NewPlayerCommand(time.time(), id))
 
-    def broadcast(self, data):
-        for (addr, sock) in self.clients.items():
-            sock.sendall(data)
+    def broadcast(self, data, without=None):
+        for client_id in self.clients:
+            if client_id != without:
+                self.clients[client_id].send(data)
 
     def remove_client(self, id):
         if id in self.clients:
@@ -42,3 +47,16 @@ class ThreadedServer(object):
 
     def request_command(self, command):
         self.request_queue.put(command)
+
+    def dispatch_responses(self):
+        while True:
+            command = self.response_queue.get()
+            print('dispatching response: ', command)
+
+            if type(command) is NewPlayerCommand:
+                # TODO: send message with new player + player position + initial state to client
+                self.clients[command.id].send(command.to_json())
+
+                # TODO: send message with new player + player position to everyone else
+                self.broadcast(command.to_json_broadcast(), command.id)
+

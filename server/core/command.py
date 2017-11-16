@@ -1,3 +1,5 @@
+import json
+
 class Command(object):
     def __init__(self, timestamp, id):
         self.timestamp = timestamp
@@ -6,6 +8,12 @@ class Command(object):
 
     def apply(self, response_queue):
         pass
+
+    def to_json(self):
+        return json.dumps(self.__dict__)
+
+    def to_json_broadcast(self):
+        return self.to_json()
 
 
 class NewPlayerCommand(Command):
@@ -25,3 +33,8 @@ class NewPlayerCommand(Command):
         self.applied = True
 
         response_queue.put(self)
+
+    def to_json_broadcast(self):
+        dict = self.__dict__.copy()
+        del dict["initial_state"]
+        return json.dumps(dict)

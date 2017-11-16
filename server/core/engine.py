@@ -38,5 +38,5 @@ class Engine(multiprocessing.Process):
         commands = self.get_all_requests()
         for command in commands:
             # TODO: command needs to know the game as well
-            print(command)
+            print("applying command: ", command)
             command.apply(self.response_queue)

@@ -11,13 +11,14 @@ class Client(object):
         self.server = server
         self.up = True
 
+        self.inputs = [self.socket]
+
         self.mythread = threading.Thread(target=self._handle)
         self.mythread.start()
 
     def _handle(self):
         while self.up:
-            socket_list = [self.socket]
-            read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
+            read_sockets, write_sockets, error_sockets = select.select(self.inputs, [], self.inputs)
             #print(read_sockets, write_sockets, error_sockets)
 
             # TODO: properly check for data and receive data with prefixed size
@@ -41,3 +42,7 @@ class Client(object):
         self.up = False
         self.socket.close()
         self.server.remove_client(self.id)
+
+    def send(self, data):
+        self.socket.sendall(pack(data))
+
