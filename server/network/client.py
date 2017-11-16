@@ -19,14 +19,16 @@ class Client(object):
             socket_list = [self.socket]
             read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
             #print(read_sockets, write_sockets, error_sockets)
+
+            # TODO: properly check for data and receive data with prefixed size
             for sock in read_sockets:
                 try:
                     data = read_packet(sock)
 
                     if data:
                         #print("received", data, self.id, threading.get_ident())
-                        self.server.request_command(data)
-                        #self.broadcast(pack(data))
+                        #self.server.request_command(data)
+                        pass
                     else:
                         print(id, " disconnected")
                         self.shutdown()
