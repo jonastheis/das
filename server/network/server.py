@@ -3,7 +3,7 @@ import hashlib
 import time
 import threading
 from .client import Client
-from server.core.command import NewPlayerCommand
+from server.core.command import NewPlayerCommand, PlayerLeaveCommand
 
 
 class ThreadedServer(object):
@@ -45,6 +45,8 @@ class ThreadedServer(object):
         if id in self.clients:
             del self.clients[id]
 
+        self.request_command(PlayerLeaveCommand(time.time(), id))
+
     def request_command(self, command):
         self.request_queue.put(command)
 
@@ -59,4 +61,5 @@ class ThreadedServer(object):
 
                 # TODO: send message with new player + player position to everyone else
                 self.broadcast(command.to_json_broadcast(), command.id)
-
+            elif type(command) is PlayerLeaveCommand:
+                self.broadcast(command.to_json_broadcast())

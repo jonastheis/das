@@ -23,6 +23,7 @@ def read_packet(sock):
         data = sock.recv(1)
         data = str(data, "utf-8")
         if not data:
+            # TODO raise other exception to signal empty message
             raise RuntimeError("Connection Error While reading.")
         elif data != '\n':
             recvd += data

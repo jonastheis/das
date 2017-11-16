@@ -24,7 +24,7 @@ g.commands = [
 ]
 try:
     # g.emulate_all()
-    g._simulate(1000)
+    g._simulate(1)
     g.emulate(5)
 
 except KeyboardInterrupt:

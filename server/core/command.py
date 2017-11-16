@@ -2,6 +2,7 @@ import json
 
 class Command(object):
     def __init__(self, timestamp, id):
+        self.type = type(self).__name__
         self.timestamp = timestamp
         self.id = id
         self.applied = False
@@ -15,17 +16,20 @@ class Command(object):
     def to_json_broadcast(self):
         return self.to_json()
 
+    def __str__(self):
+        return '%s(%s)' % (
+            type(self).__name__,
+            ', '.join('%s=%s' % item for item in vars(self).items())
+        )
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class NewPlayerCommand(Command):
     def __init__(self, timestamp, id):
         Command.__init__(self, timestamp, id)
         self.initial_state = ""
-
-    def __str__(self):
-        return "NewPlayerCommand({0}, {1})".format(self.timestamp, self.id)
-
-    def __repr__(self):
-        return self.__str__()
 
     def apply(self, response_queue):
         # TODO: get the initial game state
@@ -38,3 +42,13 @@ class NewPlayerCommand(Command):
         dict = self.__dict__.copy()
         del dict["initial_state"]
         return json.dumps(dict)
+
+
+class PlayerLeaveCommand(Command):
+    def __init__(self, timestamp, id):
+        Command.__init__(self, timestamp, id)
+
+    def apply(self, response_queue):
+        self.applied = True
+        # TODO: actually remove player from game
+        response_queue.put(self)
