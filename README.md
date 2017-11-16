@@ -3,7 +3,7 @@
 ## Run
 
 ```
-$ python -m server.network.server
+$ python -m server.app
 $ python -m test.simple
 ```
 
