@@ -1,5 +1,5 @@
 import socket, threading, select, sys
-from common.network_util import read_packet, pack
+from common.network_util import read_message, pack
 from common.constants import *
 
 class ClientTransport:
@@ -20,7 +20,7 @@ class ClientTransport:
             read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
             for sock in read_sockets:
                 # incoming message from remote server
-                data = read_packet(sock)
+                data = read_message(sock)
                 if not data:
                     print('\nDisconnected from server')
                     sys.exit()
