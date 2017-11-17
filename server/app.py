@@ -4,6 +4,10 @@ from server.network.server import ThreadedServer
 
 
 if __name__ == '__main__':
+    """
+    Starts the server and the engine in separate processes. 
+    They are communication via a request and response queue.
+    """
     request_queue = multiprocessing.Queue()
     response_queue = multiprocessing.Queue()
 

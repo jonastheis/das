@@ -5,7 +5,7 @@ import queue
 
 class Engine(multiprocessing.Process):
     """
-    Runs as a separate process to execute the game logic based on inputs (commands) of clients.
+    Runs as a separate process to execute the game logic based on inputs (events) of clients.
     Once launched it remains running.
     """
 
@@ -19,24 +19,31 @@ class Engine(multiprocessing.Process):
         Overloaded function provided by multiprocessing.Process. Called upon start().
         """
         while True:
-            self.process_commands()
+            self.process_events()
 
-            # periodically process commands
+            # periodically process events
             time.sleep(5)
 
     def get_all_requests(self):
-        # TODO: check whether it's possible to sort commands in queue or sort here by timestamp
-        commands = []
+        """
+        Gets all events in a burst manner from the queue.
+        :return: list of all the events sorted by timestamp
+        """
+        # TODO: check whether it's possible to sort events in queue or sort here by timestamp
+        events = []
         while True:
             try:
-                commands.append(self.request_queue.get_nowait())
+                events.append(self.request_queue.get_nowait())
             except queue.Empty:
                 break
-        return commands
+        return events
 
-    def process_commands(self):
-        commands = self.get_all_requests()
-        for command in commands:
-            # TODO: command needs to know the game as well
-            print("applying command: ", command)
-            command.apply(self.response_queue)
+    def process_events(self):
+        """
+        Processes all currently available events.
+        """
+        events = self.get_all_requests()
+        for event in events:
+            # TODO: event needs to know the game as well
+            print("applying event: ", event)
+            event.apply(self.response_queue)
