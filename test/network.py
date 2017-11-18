@@ -1,7 +1,7 @@
 import unittest
-from client import game, transport
+
+from client.network import transport
 from server.network import server
-import threading, time, multiprocessing
 
 
 class MockGame():
