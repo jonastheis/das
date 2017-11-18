@@ -12,11 +12,10 @@ class Engine(multiprocessing.Process):
     Once launched it remains running.
     """
 
-    def __init__(self, request_queue, response_queue, metadata_queue):
+    def __init__(self, request_queue, response_queue):
         multiprocessing.Process.__init__(self)
         self.request_queue = request_queue
         self.response_queue = response_queue
-        self.metadata_queue = metadata_queue
         self.game = game.Game()
 
         # Just for test
@@ -36,6 +35,10 @@ class Engine(multiprocessing.Process):
             time.sleep(self.T)
 
     def get_all_requests(self):
+        """
+        Gets all events in a burst manner from the queue.
+        :return: list of all the events sorted by timestamp
+        """
         # TODO: check whether it's possible to sort commands in queue or sort here by timestamp
         commands = []
         while True:
@@ -46,6 +49,9 @@ class Engine(multiprocessing.Process):
         return commands
 
     def process_commands(self):
+        """
+        Processes all currently available command/events.
+        """
         # TODO: now that I think about it, passing response_queue to command is not ok. We can just append it here
         commands = self.get_all_requests()
         if len(commands):
@@ -57,7 +63,3 @@ class Engine(multiprocessing.Process):
         else:
             logger.info("Interval reached. No command to process")
 
-        # for command in commands:
-        #     # TODO: command needs to know the game as well
-        #     print("applying command: ", command)
-        #     command.apply(self.response_queue)

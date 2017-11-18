@@ -4,13 +4,16 @@ from server.network.server import ThreadedServer
 
 
 if __name__ == '__main__':
+    """
+    Starts the server and the engine in separate processes. 
+    They are communication via a request and response queue.
+    """
     request_queue = multiprocessing.Queue()
     response_queue = multiprocessing.Queue()
-    metadata_queue = multiprocessing.Queue()
 
-    engine = Engine(request_queue, response_queue, metadata_queue)
+    engine = Engine(request_queue, response_queue)
     engine.start()
 
     port_num = 8081
-    server = ThreadedServer(request_queue, response_queue, metadata_queue, port_num, '')
+    server = ThreadedServer(request_queue, response_queue, port_num, '')
     server.listen()

@@ -4,6 +4,6 @@
 
 ```
 $ python -m server.app
-$ python -m test.simple
+$ python -m client.app
 ```
 
