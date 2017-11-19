@@ -4,6 +4,17 @@ from common.user import User
 
 
 class Command(object):
+    """
+    The common pattern for each command's apply is as follows:
+    They should all return Boolean values indicating if sth went wrong or not
+    They should all set self.apply to true if everything was fine
+    They should append to response queue in success cases. This is only in server mode
+    Each command will optionally override to_json_ack and to_json_broadcast
+    Note that the generic to_json should NEVER be overriden becasue it is used in the client side to send the message
+    to the server
+    The former is used when responding to issuer of the commands while the latter is broadcasted to everyone
+    TODO: currently, only Join, Leave and Move have this patters
+    """
     def __init__(self, client_id):
         self.type = type(self).__name__
         self.timestamp = time.time()
@@ -13,13 +24,28 @@ class Command(object):
     def apply(self, game, response_queue=None):
         pass
 
+
     def reverse(self, game):
         pass
 
     def to_json(self):
+        """
+        Generic method for converting an object to json
+        :return:
+        """
         return json.dumps(self.__dict__)
 
     def to_json_broadcast(self):
+        """
+        To be used when sending a command from the server to all other clients.
+        """
+        return self.to_json()
+
+    def to_json_ack(self):
+        """
+        Should be used when sending the ack of a message from server to the issuer of the command
+        :return:
+        """
         return self.to_json()
 
     @classmethod
@@ -90,7 +116,6 @@ class MoveCommand(Command):
         self.value = value
         self.direction = direction
 
-
     def apply(self, game, response_queue=None):
         _user = self.get_user_by_id(game, self.client_id)
 
@@ -135,6 +160,11 @@ class MoveCommand(Command):
         if response_queue:
             response_queue.put(self)
 
+    def to_json_ack(self):
+        dict = self.__dict__.copy()
+        del dict["value"]
+        del dict["direction"]
+        return json.dumps(dict)
 
     def reverse(self, game):
         pass

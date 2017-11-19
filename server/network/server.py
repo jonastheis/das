@@ -86,16 +86,20 @@ class ThreadedServer(object):
 
             if type(command) is NewPlayerCommand:
                 # TODO: send message with new player + player position + initial state to client
+                # Not that the issuer of this command (joining client)
+                # is explicitly waiting for this response
                 self.clients[command.client_id].send(command.to_json())
 
                 # TODO: send message with new player + player position to everyone else
                 self.broadcast(command.to_json_broadcast(), command.client_id)
+
             elif type(command) is PlayerLeaveCommand:
                 self.broadcast(command.to_json_broadcast())
 
             else:
                 # sent an ok to the issuer
+                self.clients[command.client_id].send(command.to_json_ack())
 
                 # broadcast to all others
-                self.broadcast(command.to_json())
+                self.broadcast(command.to_json_broadcast(), command.client_id)
 
