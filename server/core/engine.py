@@ -21,7 +21,7 @@ class Engine(multiprocessing.Process):
         # Just for test
         self.game.add_user(User(USERS.DRAGON), 0, 0)
 
-        self.T = 5
+        self.T = .5
 
 
     def run(self):

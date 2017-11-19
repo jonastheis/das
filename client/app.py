@@ -8,18 +8,18 @@ import threading, random, time
 class ClientApp():
     def __init__(self):
         self.game = Game()
-        self.transport_layer = ClientTransport(self, TRANSPORT.port, TRANSPORT.host)
+        self.transport_layer = ClientTransport(self.game, TRANSPORT.port, TRANSPORT.host)
 
         id, map = self.transport_layer.setup_client()
         self.id = id
         # replace json objects with user object (oh I miss you JS :( )
         self.game.from_serialized_map(map, id)
-        print("Client setup data")
+        print("Client setup data:")
         print(id)
         print(self.game)
         print("________________________________________")
 
-
+        self.transport_layer.id = id
         self.transport_layer.listen()
         self.my_user = None
 
@@ -81,5 +81,5 @@ class ClientApp():
 if __name__ == "__main__":
     client = ClientApp()
     client.generate_commands(1000)
-    client.run(1)
+    client.run(.5)
 

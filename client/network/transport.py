@@ -1,11 +1,12 @@
 import socket, threading, select, sys, json
 from common.network_util import read_message, pack
 from common.constants import *
+from common.command import Command
 
 class ClientTransport:
     def __init__(self, game, port=TRANSPORT.port, host=TRANSPORT.host):
         self.game = game
-
+        self.id = None
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
 
@@ -22,8 +23,18 @@ class ClientTransport:
                     print('\nDisconnected from server')
                     sys.exit()
                 else:
-                    # TODO: create a new Command object from Command.from_json and append to game.commands
-                    print("Transport:: received", data)
+                    data_dict = json.loads(data)
+
+                    # This is an ack of my won prev command, skip for now
+                    if data_dict['client_id'] == self.id:
+                        print("Ack received for {}".format(data_dict))
+
+                    # This is a new command. for now execute it immediately
+                    else:
+                        command_obj = Command.from_json(data)
+                        command_obj.apply(self.game)
+
+
 
     def listen(self):
         transport_thread = threading.Thread(target=self.check_recv)

@@ -15,9 +15,9 @@ class Command(object):
     The former is used when responding to issuer of the commands while the latter is broadcasted to everyone
     TODO: currently, only Join, Leave and Move have this patters
     """
-    def __init__(self, client_id):
+    def __init__(self, client_id, timestamp):
         self.type = type(self).__name__
-        self.timestamp = time.time()
+        self.timestamp = timestamp
         self.client_id = client_id
         self.applied = False
 
@@ -50,8 +50,39 @@ class Command(object):
 
     @classmethod
     def from_json(cls, json_str):
-        json_dict = json.loads(json_str)
-        return cls(**json_dict)
+        # TODO: there should be a better way to fix this
+        json_data = json.loads(json_str)
+        if json_data['type'] == 'MoveCommand':
+            command_obj = MoveCommand(
+                json_data['client_id'],
+                json_data['value'],
+                json_data['direction'],
+                json_data['timestamp'])
+
+        elif json_data['type'] == 'NewPlayerCommand':
+            command_obj = NewPlayerCommand(
+                json_data['client_id'],
+                json_data['timestamp'])
+
+        elif json_data['type'] == 'PlayerLeaveCommand':
+            command_obj = PlayerLeaveCommand(
+                json_data['client_id'],
+                json_data['timestamp'])
+
+        elif json_data['type'] == 'AttackCommand':
+            command_obj = AttackCommand(
+                json_data['client_id'],
+                json_data['target_id'],
+                json_data['timestamp'])
+
+        elif json_data['type'] == 'HealCommand':
+            command_obj = HealCommand(
+                json_data['client_id'],
+                json_data['target_id'],
+                json_data['timestamp'])
+        else:
+            logger.error("Error:: Unrecognized command received. skipping...")
+        return command_obj
 
     def __str__(self):
         return '%s(%s)' % (
@@ -82,8 +113,8 @@ class Command(object):
 
 
 class NewPlayerCommand(Command):
-    def __init__(self, client_id):
-        Command.__init__(self, client_id)
+    def __init__(self, client_id, timestamp=time.time()):
+        Command.__init__(self, client_id, timestamp)
         self.initial_state = ""
 
     def apply(self, game, response_queue=None):
@@ -94,7 +125,8 @@ class NewPlayerCommand(Command):
         self.initial_state = game.serialize()
         self.applied = True
 
-        response_queue.put(self)
+        if response_queue:
+            response_queue.put(self)
 
     def to_json_broadcast(self):
         dict = self.__dict__.copy()
@@ -102,8 +134,8 @@ class NewPlayerCommand(Command):
         return json.dumps(dict)
 
 class PlayerLeaveCommand(Command):
-    def __init__(self, client_id):
-        Command.__init__(self, client_id)
+    def __init__(self, client_id, timestamp=time.time()):
+        Command.__init__(self, client_id, timestamp)
 
     def apply(self, game, response_queue=None):
         self.applied = True
@@ -111,8 +143,8 @@ class PlayerLeaveCommand(Command):
         # response_queue.put(self)
 
 class MoveCommand(Command):
-    def __init__(self, client_id, value, direction):
-        Command.__init__(self, client_id)
+    def __init__(self, client_id, value, direction, timestamp=time.time()):
+        Command.__init__(self, client_id, timestamp)
         self.value = value
         self.direction = direction
 
@@ -174,8 +206,8 @@ class MoveCommand(Command):
         return Command.__str__(self) + "[value {} direction {}]".format(self.value, self.direction)
 
 class AttackCommand(Command):
-    def __init__(self, client_id, target_id):
-        Command.__init__(self, client_id)
+    def __init__(self, client_id, target_id, timestamp=time.time()):
+        Command.__init__(self, client_id, timestamp)
         self.target_id = target_id
         self.user_id = client_id
 
@@ -210,8 +242,8 @@ class AttackCommand(Command):
         pass
 
 class HealCommand(Command):
-    def __init__(self, client_id, target_id):
-        Command.__init__(self, client_id)
+    def __init__(self, client_id, target_id, timestamp=time.time()):
+        Command.__init__(self, client_id, timestamp)
         self.target_id = target_id
 
     def apply(self, game, response_queue=None):

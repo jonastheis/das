@@ -38,21 +38,7 @@ class Client(object):
                     logger.debug("Received from client {}: [{}...]".format(self.id, data[:20]))
                     # if there is data pass it to the game engine
 
-                    # TODO: should there be a way to automate this? definitely.
-                    json_data = json.loads(data)
-                    if json_data['type'] == 'MoveCommand':
-                        command_obj = command.MoveCommand(json_data['client_id'], json_data['value'], json_data['direction'])
-                    elif json_data['type'] == 'NewPlayerCommand':
-                        command_obj = command.NewPlayerCommand(json_data['client_id'])
-                    elif json_data['type'] == 'PlayerLeaveCommand':
-                        command_obj = command.PlayerLeaveCommand(json_data['client_id'])
-                    elif json_data['type'] == 'AttackCommand':
-                        command_obj = command.AttackCommand(json_data['client_id'], json_data['target_id'])
-                    elif json_data['type'] == 'HealCommand':
-                        command_obj = command.HealCommand(json_data['client_id'], json_data['target_id'])
-                    else:
-                        logger.error("Error:: Unrecognized command received. skipping...")
-                        continue
+                    command_obj = command.Command.from_json(data)
 
                     self.server.request_command(command_obj)
 
