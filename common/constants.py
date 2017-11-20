@@ -19,14 +19,19 @@ class USERS:
 
 
 logger = logging.getLogger()
-handler = logging.StreamHandler()
 
-formatter = logging.Formatter(
+def init_logger(file):
+    # clear contents from previous run
+    open(file, 'w').close()
+
+    handler = logging.FileHandler(file)
+
+    formatter = logging.Formatter(
         '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 
-handler.setFormatter(formatter)
+    handler.setFormatter(formatter)
 
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
 
-logger.debug("Logger initialized")
+    logger.debug("Logger initialized")

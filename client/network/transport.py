@@ -10,7 +10,7 @@ class ClientTransport:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
 
-        print("Transport Client listening connected to port {}".format(port))
+        logger.info("Transport Client listening connected to port {}".format(port))
 
     def check_recv(self):
         while True:
@@ -20,14 +20,14 @@ class ClientTransport:
                 # incoming message from remote server
                 data = read_message(sock)
                 if not data:
-                    print('\nDisconnected from server')
+                    logger.info('\nDisconnected from server')
                     sys.exit()
                 else:
                     data_dict = json.loads(data)
 
                     # This is an ack of my won prev command, skip for now
                     if data_dict['client_id'] == self.id:
-                        print("Ack received for {}".format(data_dict))
+                        logger.info("Ack received for {}".format(data_dict))
 
                     # This is a new command. for now execute it immediately
                     else:
@@ -63,8 +63,8 @@ class ClientTransport:
         :return:
         """
         try:
-            print("Transport :: sending {}".format(data))
+            logger.info("Transport :: sending {}".format(data))
             self.sock.sendall(pack(data))
         except Exception as e:
-            print("Error while sending data " +  str(e))
+            logger.error("Error while sending data " + str(e))
 

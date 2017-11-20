@@ -1,6 +1,6 @@
 from common.game import Game
 from client.network.transport import ClientTransport
-from common.constants import TRANSPORT, USERS, DIRECTIONS
+from common.constants import TRANSPORT, USERS, DIRECTIONS, init_logger, logger
 from common.command import MoveCommand
 import threading, random, time
 
@@ -14,10 +14,7 @@ class ClientApp():
         self.id = id
         # replace json objects with user object (oh I miss you JS :( )
         self.game.from_serialized_map(map, id)
-        print("Client setup data:")
-        print(id)
-        print(self.game)
-        print("________________________________________")
+        logger.info("Setup data -> id: {0}".format(id))
 
         self.transport_layer.id = id
         self.transport_layer.listen()
@@ -36,7 +33,7 @@ class ClientApp():
         :param iterations: Number of iterations
         :return: None
         """
-        print("Generating commands for {} iterations".format(iterations))
+        logger.info("Generating commands for {} iterations".format(iterations))
         for i in range(iterations):
             new_command = self.simulate_player(self.id)
             self.game.commands.append(new_command)
@@ -61,24 +58,21 @@ class ClientApp():
         threading.Thread(target=self._run, args=(commands_per_second,)).start()
 
     def _run(self, command_per_second):
-        print("Current number of commands for emulation {}".format(len(self.game.commands)))
+        logger.info("Current number of commands for emulation {}".format(len(self.game.commands)))
         while True:
             time.sleep(1/command_per_second)
             if len(self.game.commands):
-                print("##################")
                 command_to_apply = self.game.commands[0]
-                print(command_to_apply)
+                logger.info("Apply command: " + str(command_to_apply))
 
                 self.game.epoch()
                 self.transport_layer.send_data(command_to_apply.to_json())
-
-                print(self.game)
-                print("##################")
 
             else:
                 continue
 
 if __name__ == "__main__":
+    init_logger("log/client_{0}.log".format(time.time()))
     client = ClientApp()
     client.generate_commands(1000)
     client.run(.5)

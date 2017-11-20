@@ -152,12 +152,12 @@ class MoveCommand(Command):
         _user = self.get_user_by_id(game, self.client_id)
 
         if _user == 0:
-            print("No Player Found")
+            logger.error("No Player Found")
             return False
 
         # Dragons cannot move
         if _user.type == 'd':
-            print("Dragons cannot move")
+            logger.error("Dragons cannot move")
             return False
 
         _row, _col = _user.pos
@@ -173,12 +173,12 @@ class MoveCommand(Command):
 
         # Check if target is in boundaries of the map
         if target_row >= game.row or target_col >= game.col or target_row < 0 or target_col < 0:
-            print("Position [{}, {}] out of scope of game".format(target_row, target_col))
+            logger.error("Position [{}, {}] out of scope of game".format(target_row, target_col))
             return False
 
         # Check if target pos is full
         if game.map[target_row][target_col] != 0:
-            print("Position [{}, {}] already full".format(target_row, target_col))
+            logger.error("Position [{}, {}] already full".format(target_row, target_col))
             return False
 
         game.map[_row][_col] = 0
@@ -217,11 +217,11 @@ class AttackCommand(Command):
 
 
         if attacker == 0:
-            print("Attacker not found")
+            logger.error("Attacker not found")
             return False
 
         if target == 0:
-            print("Target not found")
+            logger.error("Target not found")
             return False
 
         attacker_row, attacker_col = attacker.pos
@@ -230,7 +230,7 @@ class AttackCommand(Command):
         distance = self.get_distance([attacker_row, attacker_col], [target_row, target_col])
 
         if distance > 2:
-            print("Attack distance bigger than 2")
+            logger.error("Attack distance bigger than 2")
             return False
 
         target.hp -= attacker.ap
@@ -251,11 +251,11 @@ class HealCommand(Command):
         target = self.get_user_by_id(game, self.target_id)
 
         if healer == 0:
-            print("Healer not found")
+            logger.error("Healer not found")
             return False
 
         if target == 0:
-            print("Target not found")
+            logger.error("Target not found")
             return False
 
         healer_row, healer_col = healer.pos
@@ -264,7 +264,7 @@ class HealCommand(Command):
         distance = self.get_distance([healer_row, healer_col], [target_row, target_col])
 
         if distance > 5:
-            print("Heal distance bigger than 5")
+            logger.error("Heal distance bigger than 5")
             return
 
         heal_amount = healer.ap

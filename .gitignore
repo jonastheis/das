@@ -3,3 +3,4 @@ venv
 /venv/
 .idea/
 /test/log/*.log
+/log/
