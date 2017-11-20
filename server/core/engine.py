@@ -1,9 +1,11 @@
 import multiprocessing
 import time
 import queue
+import threading
 from common import game
 from common.user import User
 from common.constants import USERS, logger
+from common.visualizer import Visualizer
 
 
 class Engine(multiprocessing.Process):
@@ -28,6 +30,14 @@ class Engine(multiprocessing.Process):
         """
         Overloaded function provided by multiprocessing.Process. Called upon start().
         """
+
+        threading.Thread(target=self._run).start()
+
+        # start visualization
+        visualizer = Visualizer(self.game)
+        visualizer.visualize()
+
+    def _run(self):
         while True:
             self.process_commands()
 

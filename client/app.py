@@ -2,6 +2,7 @@ from common.game import Game
 from client.network.transport import ClientTransport
 from common.constants import TRANSPORT, USERS, DIRECTIONS, init_logger, logger
 from common.command import MoveCommand
+from common.visualizer import Visualizer
 import threading, random, time
 
 
@@ -77,3 +78,6 @@ if __name__ == "__main__":
     client.generate_commands(1000)
     client.run(.5)
 
+    # start visualization
+    visualizer = Visualizer(client.game, client.id)
+    visualizer.visualize()

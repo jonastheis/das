@@ -23,7 +23,7 @@ class User:
         self.id = id
 
     def __str__(self):
-        return "{}@{}({})".format(self.type, self.id[:1], self.hp)
+        return "{}({}|{})".format(self.type, self.ap, self.hp)
 
     def to_json(self):
         return self.__dict__
