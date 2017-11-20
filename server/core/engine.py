@@ -21,7 +21,7 @@ class Engine(multiprocessing.Process):
         # Just for test
         self.game.add_user(User(USERS.DRAGON), 0, 0)
 
-        self.T = .5
+        self.T = 5
 
 
     def run(self):
@@ -39,13 +39,14 @@ class Engine(multiprocessing.Process):
         Gets all events in a burst manner from the queue.
         :return: list of all the events sorted by timestamp
         """
-        # TODO: check whether it's possible to sort commands in queue or sort here by timestamp
         commands = []
         while True:
             try:
                 commands.append(self.request_queue.get_nowait())
             except queue.Empty:
                 break
+        # sort list by timestamp
+        commands.sort(key=lambda command: command.timestamp)
         return commands
 
     def process_commands(self):
@@ -55,11 +56,11 @@ class Engine(multiprocessing.Process):
         # TODO: now that I think about it, passing response_queue to command is not ok. We can just append it here
         commands = self.get_all_requests()
         if len(commands):
-            logger.info("Interval reached. Processing {} commands".format(len(commands)))
+            #logger.info("Interval reached. Processing {} commands".format(len(commands)))
             self.game.commands+= commands
             self.game.mega_epoch(False, self.response_queue)
-            logger.debug("New game state:")
-            print(self.game)
+            #logger.debug("New game state:")
+            #print(self.game)
         else:
             logger.info("Interval reached. No command to process")
 
