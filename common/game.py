@@ -52,6 +52,12 @@ class Game:
             self.map[r][c] = 0
             return True
 
+    def remove_user_by_id(self, user_id):
+        for i in range(self.row):
+            for j in range(self.col):
+                if self.map[i][j] != 0 and self.map[i][j].id == user_id:
+                    self.remove_user(i, j)
+
     def serialize(self):
         _map = copy.deepcopy(self.map)
         for i in range(self.row):

@@ -132,8 +132,8 @@ class PlayerLeaveCommand(Command):
         Command.__init__(self, client_id, timestamp)
 
     def apply(self, game):
-        pass
-        # TODO: actually remove player from game
+        game.remove_user_by_id(self.client_id)
+        return True
 
 
 class MoveCommand(Command):
