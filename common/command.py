@@ -7,12 +7,9 @@ class Command(object):
     """
     The common pattern for each command's apply is as follows:
     They should all return Boolean values indicating if sth went wrong or not
-    They should all set self.apply to true if everything was fine
-    They should append to response queue in success cases. This is only in server mode
-    Each command will optionally override to_json_ack and to_json_broadcast
+    Each command will optionally override to_json_broadcast
     Note that the generic to_json should NEVER be overriden becasue it is used in the client side to send the message
     to the server
-    The former is used when responding to issuer of the commands while the latter is broadcasted to everyone
     TODO: currently, only Join, Leave and Move have this patters
     """
     def __init__(self, client_id, timestamp):
@@ -150,7 +147,7 @@ class MoveCommand(Command):
             return False
 
         # Dragons cannot move
-        if _user.type == 'd':
+        if _user.type == USERS.DRAGON:
             logger.error("Dragons cannot move")
             return False
 
@@ -159,11 +156,15 @@ class MoveCommand(Command):
         target_row = _row
         target_col = _col
 
+        # make sure only 1 step
+        if abs(self.value) != 1:
+            logger.error("Invalid step count")
+            return False
+
         if self.direction == DIRECTIONS.V:
             target_row += self.value
         elif self.direction == DIRECTIONS.H:
             target_col += self.value
-
 
         # Check if target is in boundaries of the map
         if target_row >= game.row or target_col >= game.col or target_row < 0 or target_col < 0:
@@ -175,18 +176,17 @@ class MoveCommand(Command):
             logger.error("Position [{}, {}] already full".format(target_row, target_col))
             return False
 
-        game.map[_row][_col] = 0
         # update game map
+        game.map[_row][_col] = 0
         game.map[target_row][target_col] = _user
         # update user position
         _user.pos = [target_row, target_col]
 
-    def reverse(self, game):
-        pass
-
+        return True
 
     def __str__(self):
         return Command.__str__(self) + "[value {} direction {}]".format(self.value, self.direction)
+
 
 class AttackCommand(Command):
     def __init__(self, client_id, target_id, timestamp=time.time()):
@@ -197,7 +197,6 @@ class AttackCommand(Command):
     def apply(self, game):
         attacker = self.get_user_by_id(game, self.user_id)
         target = self.get_user_by_id(game, self.target_id)
-
 
         if attacker == 0:
             logger.error("Attacker not found")
@@ -221,8 +220,8 @@ class AttackCommand(Command):
         if target.hp <= 0:
             game.remove_user(target_row, target_col)
 
-    def reverse(self, game):
-        pass
+        return True
+
 
 class HealCommand(Command):
     def __init__(self, client_id, target_id, timestamp=time.time()):
@@ -256,6 +255,4 @@ class HealCommand(Command):
         if target.hp > target.MAX_HP:
             target.hp = target.MAX_HP
 
-    def reverse(self, game):
-        pass
-
+        return True
