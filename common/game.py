@@ -13,6 +13,7 @@ class Game:
 
         self.commands = []
         self.users = []
+        self.is_server = False
 
 
     def __str__(self):
@@ -50,46 +51,6 @@ class Game:
             self.users.remove(self.map[r][c])
             self.map[r][c] = 0
             return True
-
-    def epoch(self, response_queue=None):
-        """
-        applies one command to the game object and map
-        will cause that command to be removed from the list
-        :return: Status of the applied commands
-        """
-        if len(self.commands):
-            command = self.commands[0]
-            status = command.apply(self, response_queue)
-
-            self.commands = self.commands[1:]
-
-            return status or False
-
-        else:
-            return False
-
-
-    def mega_epoch(self, log=True, response_queue=None):
-        """
-        same as epoch() but will run all commands in the command queue
-        previous name: emulate_all()
-        :return: a list of failed commands
-        """
-        i = 1
-        errs = []
-        while len(self.commands):
-            command_to_apply = self.commands[0]
-            i += 1
-            status = self.epoch(response_queue)
-            if not status:
-                errs.append(command_to_apply)
-
-            if log:
-                print("###Epoch {0}".format(i))
-                print(command_to_apply)
-                print(self)
-
-        return errs
 
     def serialize(self):
         _map = copy.deepcopy(self.map)

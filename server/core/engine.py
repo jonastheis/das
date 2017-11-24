@@ -19,6 +19,7 @@ class Engine(multiprocessing.Process):
         self.request_queue = request_queue
         self.response_queue = response_queue
         self.game = game.Game()
+        self.game.is_server = True
 
         # Just for test
         self.game.add_user(User(USERS.DRAGON), 0, 0)
@@ -63,12 +64,18 @@ class Engine(multiprocessing.Process):
         """
         Processes all currently available command/events.
         """
-        # TODO: now that I think about it, passing response_queue to command is not ok. We can just append it here
         commands = self.get_all_requests()
+
         if len(commands):
             logger.info("Interval reached. Processing {} commands".format(len(commands)))
-            self.game.commands += commands
-            self.game.mega_epoch(False, self.response_queue)
+
+            while len(commands):
+                command = commands.pop(0)
+                status = command.apply(self.game)
+
+                # only send to clients if successful
+                if status:
+                    self.response_queue.put(command)
         else:
             logger.info("Interval reached. No command to process")
 

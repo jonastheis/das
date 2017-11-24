@@ -19,13 +19,8 @@ class Command(object):
         self.type = type(self).__name__
         self.timestamp = timestamp
         self.client_id = client_id
-        self.applied = False
 
-    def apply(self, game, response_queue=None):
-        pass
-
-
-    def reverse(self, game):
+    def apply(self, game):
         pass
 
     def to_json(self):
@@ -55,7 +50,8 @@ class Command(object):
         elif json_data['type'] == 'NewPlayerCommand':
             command_obj = NewPlayerCommand(
                 json_data['client_id'],
-                json_data['timestamp'])
+                json_data['timestamp'],
+                json_data['player_dict'])
 
         elif json_data['type'] == 'PlayerLeaveCommand':
             command_obj = PlayerLeaveCommand(
@@ -106,34 +102,39 @@ class Command(object):
 
 
 class NewPlayerCommand(Command):
-    def __init__(self, client_id, timestamp=time.time()):
+    def __init__(self, client_id, timestamp=time.time(), player_dict=None):
         Command.__init__(self, client_id, timestamp)
         self.initial_state = ""
+        self.player_dict = player_dict
 
-    def apply(self, game, response_queue=None):
+    def apply(self, game):
         new_user = User(USERS.PLAYER, self.client_id)
-        game.add_user(new_user)
 
-        self.pos = new_user.pos
-        self.initial_state = game.serialize()
-        self.applied = True
+        if game.is_server:
+            game.add_user(new_user)
+            self.player_dict = new_user.to_json()
+            self.initial_state = game.serialize()
+        else:
+            for (key, val) in self.player_dict.items():
+                setattr(new_user, key, val)
+            game.add_user(new_user, new_user.pos[0], new_user.pos[1])
 
-        if response_queue:
-            response_queue.put(self)
+        return True
 
     def to_json_broadcast(self):
         dict = self.__dict__.copy()
         del dict["initial_state"]
         return json.dumps(dict)
 
+
 class PlayerLeaveCommand(Command):
     def __init__(self, client_id, timestamp=time.time()):
         Command.__init__(self, client_id, timestamp)
 
-    def apply(self, game, response_queue=None):
-        self.applied = True
+    def apply(self, game):
+        pass
         # TODO: actually remove player from game
-        # response_queue.put(self)
+
 
 class MoveCommand(Command):
     def __init__(self, client_id, value, direction, timestamp=time.time()):
@@ -141,7 +142,7 @@ class MoveCommand(Command):
         self.value = value
         self.direction = direction
 
-    def apply(self, game, response_queue=None):
+    def apply(self, game):
         _user = self.get_user_by_id(game, self.client_id)
 
         if _user == 0:
@@ -179,11 +180,6 @@ class MoveCommand(Command):
         game.map[target_row][target_col] = _user
         # update user position
         _user.pos = [target_row, target_col]
-        self.applied = True
-
-        # Note that having a response queue or not indicates is this in server or not
-        if response_queue:
-            response_queue.put(self)
 
     def reverse(self, game):
         pass
@@ -198,7 +194,7 @@ class AttackCommand(Command):
         self.target_id = target_id
         self.user_id = client_id
 
-    def apply(self, game, response_queue=None):
+    def apply(self, game):
         attacker = self.get_user_by_id(game, self.user_id)
         target = self.get_user_by_id(game, self.target_id)
 
@@ -233,7 +229,7 @@ class HealCommand(Command):
         Command.__init__(self, client_id, timestamp)
         self.target_id = target_id
 
-    def apply(self, game, response_queue=None):
+    def apply(self, game):
         healer = self.get_user_by_id(game, self.client_id)
         target = self.get_user_by_id(game, self.target_id)
 
