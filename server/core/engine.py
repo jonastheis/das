@@ -23,6 +23,7 @@ class Engine(multiprocessing.Process):
 
         # Just for test
         self.game.add_user(User(USERS.DRAGON), 0, 0)
+        self.game.add_user(User(USERS.DRAGON), 4, 4)
 
         self.T = .5
 
