@@ -63,10 +63,9 @@ class ClientApp():
         while True:
             time.sleep(1/command_per_second)
             if len(self.game.commands):
-                command_to_apply = self.game.commands[0]
+                command_to_apply = self.game.commands.pop(0)
                 logger.info("Apply command: " + str(command_to_apply))
 
-                self.game.epoch()
                 self.transport_layer.send_data(command_to_apply.to_json())
 
             else:

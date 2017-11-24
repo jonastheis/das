@@ -23,16 +23,10 @@ class ClientTransport:
                     logger.info('\nDisconnected from server')
                     sys.exit()
                 else:
-                    data_dict = json.loads(data)
-
-                    # This is an ack of my won prev command, skip for now
-                    if data_dict['client_id'] == self.id:
-                        logger.info("Ack received for {}".format(data_dict))
-
-                    # This is a new command. for now execute it immediately
-                    else:
-                        command_obj = Command.from_json(data)
-                        command_obj.apply(self.game)
+                    # TODO: double check if that's the correct behaviour
+                    # execute all commands from server
+                    command_obj = Command.from_json(data)
+                    command_obj.apply(self.game)
 
 
 

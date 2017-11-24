@@ -41,13 +41,6 @@ class Command(object):
         """
         return self.to_json()
 
-    def to_json_ack(self):
-        """
-        Should be used when sending the ack of a message from server to the issuer of the command
-        :return:
-        """
-        return self.to_json()
-
     @classmethod
     def from_json(cls, json_str):
         # TODO: there should be a better way to fix this
@@ -191,12 +184,6 @@ class MoveCommand(Command):
         # Note that having a response queue or not indicates is this in server or not
         if response_queue:
             response_queue.put(self)
-
-    def to_json_ack(self):
-        dict = self.__dict__.copy()
-        del dict["value"]
-        del dict["direction"]
-        return json.dumps(dict)
 
     def reverse(self, game):
         pass
