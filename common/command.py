@@ -235,9 +235,19 @@ class HealCommand(Command):
         if healer == 0:
             logger.error("Healer not found")
             return False
+        if healer.type != USERS.PLAYER:
+            logger.error("Dragons can't heal")
+            return False
 
         if target == 0:
             logger.error("Target not found")
+            return False
+        if target.type != USERS.PLAYER:
+            logger.error("Can't heal a dragon")
+            return False
+
+        if self.client_id == self.target_id:
+            logger.error("Can't heal yourself")
             return False
 
         healer_row, healer_col = healer.pos

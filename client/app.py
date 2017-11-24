@@ -21,7 +21,6 @@ class ClientApp():
         self.transport_layer.id = id
         self.transport_layer.listen()
         self.my_user = next(filter(lambda el: el.id == self.id, self.game.users))
-        print("Self user is", self.my_user)
 
     def generate_commands(self, iterations):
         """
@@ -52,8 +51,9 @@ class ClientApp():
         ######## Option 1: heal a close-by player
         heal_candidates = self.get_users_in_range(self.my_user.pos, 5, USERS.PLAYER)
         for user in heal_candidates:
-            if user.hp < user.MAX_HP/2:
-                return HealCommand(self.id, user.id)
+            if user.id != self.my_user.id:
+                if user.hp < user.MAX_HP/2:
+                    return HealCommand(self.id, user.id)
 
         ######## Option 2: Attack a close dragon if available
         attack_candidates = self.get_users_in_range(self.my_user.pos, 2, USERS.DRAGON)
@@ -143,8 +143,6 @@ class ClientApp():
                 logger.info("Apply command: " + str(command_to_apply))
 
                 self.transport_layer.send_data(command_to_apply.to_json())
-            else:
-                continue
 
 if __name__ == "__main__":
     # init_logger("log/client_{0}.log".format(time.time()))
@@ -157,5 +155,5 @@ if __name__ == "__main__":
     client.run(.5)
 
     # start visualization
-    # visualizer = Visualizer(client.game, client.id)
-    # visualizer.visualize()
+    visualizer = Visualizer(client.game, client.id)
+    visualizer.visualize()
