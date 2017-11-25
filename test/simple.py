@@ -2,6 +2,14 @@ import sys
 
 import common.user, common.game, common.command
 from common.constants import USERS
+import emulation.GTAEventsReader
+
+listOfEvents = emulation.GTAEventsReader.LoadEventsFromFile('WoWSession_Node_Player_Fixed_Dynamic.zip')
+
+# Normalize the timeStamps of the Login/Logout events using the time between the the first and last login/logout events
+listOfNormalizedEvents = emulation.GTAEventsReader.NormalizeEvents(listOfEvents, 10000)
+
+print("Total number of Login/Logout events: " + str(len(listOfNormalizedEvents)))
 
 g = common.game.Game()
 
