@@ -216,9 +216,14 @@ class AttackCommand(Command):
             return False
 
         target.hp -= attacker.ap
+        attacker.hp -= target.ap
 
         if target.hp <= 0:
-            game.remove_user(target_row, target_col)
+            # game.remove_user(target_row, target_col)
+            # Just to make it more consistent
+            game.remove_user_by_id(self.target_id)
+        if attacker.hp <= 0:
+            game.remove_user_by_id(self.client_id)
 
         return True
 

@@ -37,7 +37,7 @@ class ClientApp():
         """
         logger.info("Generating commands for {} iterations".format(iterations))
         for i in range(iterations):
-            new_command = random.choice([self.simulate_player(), self.simulate_dragon()])
+            new_command = self.simulate_player()
             # If there is no dragon and no one with hp<50%, no commands will be generated. In that case do nothing
             if new_command:
                 self.game.commands.append(new_command)
@@ -155,5 +155,5 @@ if __name__ == "__main__":
     client.run(.5)
 
     # start visualization
-    visualizer = Visualizer(client.game, client.id)
-    visualizer.visualize()
+    # visualizer = Visualizer(client.game, client.id)
+    # visualizer.visualize()
