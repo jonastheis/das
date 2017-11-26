@@ -32,7 +32,10 @@ def read_message(socket):
     size_data = b""
     recv_size = 8192
     while total_len < size:
-        sock_data = socket.recv(recv_size)
+        try:
+            sock_data = socket.recv(recv_size)
+        except:
+            raise TCPConnectionError("Socket Closed")
 
         # if empty -> connection is closing
         if not sock_data:

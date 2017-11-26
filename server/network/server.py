@@ -2,6 +2,8 @@ import socket
 import hashlib
 import threading
 
+import time
+
 from common.constants import logger
 from .client import Client
 from common.command import NewPlayerCommand, PlayerLeaveCommand
@@ -90,7 +92,18 @@ class ThreadedServer(object):
                 self.clients[command.client_id].send(command.to_json())
 
                 self.broadcast(command.to_json_broadcast(), command.client_id)
+
+            elif type(command) is PlayerLeaveCommand and command.is_killed:
+                #@Jonas I didn't use the self.remove_client() because that Adds another PlayerLeave to the queue.
+                # We should rethink this a bit
+                self.clients[command.client_id].up = False
+                self.clients[command.client_id].socket.close()
+                if command.client_id in self.clients:
+                    del self.clients[command.client_id]
+
+
             else:
+                # if type is PlayerLeave and is_killed == true, we will come here wither way
                 # broadcast to all others
                 self.broadcast(command.to_json_broadcast())
 

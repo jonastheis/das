@@ -3,6 +3,7 @@ import time
 import queue
 import threading
 from common import game
+from common.command import AttackCommand
 from common.user import User
 from common.constants import USERS, logger
 from common.visualizer import Visualizer
@@ -72,7 +73,11 @@ class Engine(multiprocessing.Process):
 
             while len(commands):
                 command = commands.pop(0)
-                status = command.apply(self.game)
+
+                if type(command) is AttackCommand:
+                    status = command.apply(self.game, self.response_queue)
+                else:
+                    status = command.apply(self.game)
 
                 # only send to clients if successful
                 if status:

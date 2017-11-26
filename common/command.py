@@ -53,7 +53,8 @@ class Command(object):
         elif json_data['type'] == 'PlayerLeaveCommand':
             command_obj = PlayerLeaveCommand(
                 json_data['client_id'],
-                json_data['timestamp'])
+                json_data['timestamp'],
+                json_data['is_killed'])
 
         elif json_data['type'] == 'AttackCommand':
             command_obj = AttackCommand(
@@ -125,8 +126,9 @@ class NewPlayerCommand(Command):
 
 
 class PlayerLeaveCommand(Command):
-    def __init__(self, client_id, timestamp=time.time()):
+    def __init__(self, client_id, is_killed=False, timestamp=time.time()):
         Command.__init__(self, client_id, timestamp)
+        self.is_killed = is_killed
 
     def apply(self, game):
         game.remove_user_by_id(self.client_id)
@@ -194,7 +196,7 @@ class AttackCommand(Command):
         self.target_id = target_id
         self.user_id = client_id
 
-    def apply(self, game):
+    def apply(self, game, response_queue=None):
         attacker = self.get_user_by_id(game, self.user_id)
         target = self.get_user_by_id(game, self.target_id)
 
@@ -219,10 +221,11 @@ class AttackCommand(Command):
         attacker.hp -= target.ap
 
         if target.hp <= 0:
-            # game.remove_user(target_row, target_col)
-            # Just to make it more consistent
             game.remove_user_by_id(self.target_id)
-        if attacker.hp <= 0:
+        if attacker.hp <= 0 and game.is_server:
+            logger.debug("Attacker is DEAD @#############")
+            # If I am being killed during the game
+            response_queue.put(PlayerLeaveCommand(self.client_id, True))
             game.remove_user_by_id(self.client_id)
 
         return True

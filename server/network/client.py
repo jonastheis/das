@@ -29,7 +29,13 @@ class Client(object):
         Runs in a separate thread.
         """
         while self.up:
-            read_sockets, write_sockets, error_sockets = select.select(self.inputs, [], self.inputs)
+            # This is important because we might client he socket while it is waiting in select
+            # For now a continue is enough and in the next loop self.up is False
+            try:
+                read_sockets, write_sockets, error_sockets = select.select(self.inputs, [], self.inputs)
+            except:
+                logger.error("Error while checking client sockets")
+                continue
 
             for sock in read_sockets:
                 # read_packet raises exception if there is no data -> client is disconnecting

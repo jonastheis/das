@@ -1,4 +1,7 @@
 import math
+
+import sys
+
 from common.game import Game
 from client.network.transport import ClientTransport
 from common.constants import TRANSPORT, USERS, DIRECTIONS, init_logger, logger
@@ -20,11 +23,12 @@ class ClientApp():
 
         self.transport_layer.id = id
         self.transport_layer.listen()
+
         self.my_user = next(filter(lambda el: el.id == self.id, self.game.users))
 
     def generate_commands(self, iterations):
         """
-        Run _simulate in a new thread
+        Run _generate_commands in a new thread
         """
         threading.Thread(target=self._generate_commands, args=(iterations,)).start()
 
@@ -35,7 +39,7 @@ class ClientApp():
         :param iterations: Number of iterations
         :return: None
         """
-        logger.info("Generating commands for {} iterations".format(iterations))
+        logger.debug("Generating commands for {} iterations".format(iterations))
         for i in range(iterations):
             new_command = self.simulate_player()
             # If there is no dragon and no one with hp<50%, no commands will be generated. In that case do nothing
@@ -152,7 +156,10 @@ if __name__ == "__main__":
     # @Jonas note that we can no longer simulate alot of commands at onec because they depend on the new map
     # client.generate_commands(1000)
 
-    client.run(.5)
+    try:
+        client.run(.5)
+    except:
+        sys.exit()
 
     # start visualization
     # visualizer = Visualizer(client.game, client.id)

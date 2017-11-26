@@ -8,7 +8,7 @@ class User:
             id = "D@{}".format(time.time())
             self.hp = random.randint(50, 100)
             # self.ap = random.randint(5, 20)
-            self.ap = 1
+            self.ap = 5
 
         elif type == USERS.PLAYER:
             self.hp = random.randint(10, 20)

@@ -1,5 +1,5 @@
 import socket, threading, select, sys, json
-from common.network_util import read_message, pack
+from common.network_util import read_message, pack, TCPConnectionError
 from common.constants import *
 from common.command import Command
 
@@ -9,19 +9,26 @@ class ClientTransport:
         self.id = None
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
+        self.up = True
 
         logger.info("Transport Client listening connected to port {}".format(port))
 
     def check_recv(self):
-        while True:
+        while self.up:
             socket_list = [self.sock]
             read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
             for sock in read_sockets:
                 # incoming message from remote server
-                data = read_message(sock)
+                try:
+                    data = read_message(sock)
+                except TCPConnectionError as e:
+                    logger.info(str(e))
+                    self.shutdown()
+
                 if not data:
                     logger.info('\nDisconnected from server')
-                    sys.exit()
+                    self.shutdown()
+
                 else:
                     # TODO: double check if that's the correct behaviour
                     # execute all commands from server
@@ -61,4 +68,12 @@ class ClientTransport:
             self.sock.sendall(pack(data))
         except Exception as e:
             logger.error("Error while sending data " + str(e))
+
+
+    def shutdown(self):
+        self.up = False
+        self.sock.close()
+        sys.exit(1)
+
+
 
