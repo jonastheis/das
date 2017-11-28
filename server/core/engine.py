@@ -15,19 +15,19 @@ class Engine(multiprocessing.Process):
     Once launched it remains running.
     """
 
-    def __init__(self, request_queue, response_queue):
+    def __init__(self, request_queue, response_queue, initial_users, vis=False):
         multiprocessing.Process.__init__(self)
         self.request_queue = request_queue
         self.response_queue = response_queue
         self.game = game.Game()
         self.game.is_server = True
-
-        # Just for test
-        self.game.add_user(User(USERS.DRAGON), 0, 0)
-        self.game.add_user(User(USERS.DRAGON), 4, 4)
+        self.vis = vis
+        for user in initial_users:
+            self.game.add_user(User(user['type']), user['r'], user['c'])
 
         self.T = .5
 
+        logger.info("Engine successfully started.")
 
     def run(self):
         """
@@ -36,9 +36,10 @@ class Engine(multiprocessing.Process):
 
         threading.Thread(target=self._run).start()
 
-        # start visualization
-        visualizer = Visualizer(self.game)
-        visualizer.visualize()
+        if self.vis:
+            # start visualization
+            visualizer = Visualizer(self.game)
+            visualizer.visualize()
 
     def _run(self):
         while True:

@@ -1,7 +1,4 @@
-import math
-
-import sys
-
+import math, sys, argparse
 from common.game import Game
 from client.network.transport import ClientTransport
 from common.constants import TRANSPORT, USERS, DIRECTIONS, init_logger, logger
@@ -11,9 +8,9 @@ import threading, random, time
 
 
 class ClientApp():
-    def __init__(self):
+    def __init__(self, server_port):
         self.game = Game()
-        self.transport_layer = ClientTransport(self.game, TRANSPORT.port, TRANSPORT.host)
+        self.transport_layer = ClientTransport(self.game, server_port, TRANSPORT.host)
 
         id, map = self.transport_layer.setup_client()
         self.id = id
@@ -149,12 +146,22 @@ class ClientApp():
                 self.transport_layer.send_data(command_to_apply.to_json())
 
 if __name__ == "__main__":
-    # init_logger("log/client_{0}.log".format(time.time()))
-    init_logger("log/client.log")
-    client = ClientApp()
+    """
+    Arguments to the command line: 
+    --vis to enable/disable the visualizer
+    --port to choose the server port
+    --log-prefix to choose the file name of the log
+    """
+    parser = argparse.ArgumentParser(description="DAS Client app")
 
-    # @Jonas note that we can no longer simulate alot of commands at onec because they depend on the new map
-    # client.generate_commands(1000)
+    parser.add_argument("--vis", action="store_true")
+    parser.add_argument("--port", dest="port", default=TRANSPORT.port)
+    parser.add_argument("--log-prefix", dest="prefix", default=time.time())
+
+    args = parser.parse_args()
+
+    init_logger("log/client_{}.log".format(args.prefix))
+    client = ClientApp(int(args.port))
 
     try:
         client.run(.5)
@@ -162,5 +169,6 @@ if __name__ == "__main__":
         sys.exit()
 
     # start visualization
-    # visualizer = Visualizer(client.game, client.id)
-    # visualizer.visualize()
+    if args.vis:
+        visualizer = Visualizer(client.game, client.id)
+        visualizer.visualize()

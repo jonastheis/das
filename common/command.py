@@ -222,11 +222,12 @@ class AttackCommand(Command):
 
         if target.hp <= 0:
             game.remove_user_by_id(self.target_id)
-        if attacker.hp <= 0 and game.is_server:
-            logger.debug("Attacker is DEAD @#############")
-            # If I am being killed during the game
-            response_queue.put(PlayerLeaveCommand(self.client_id, True))
+        if attacker.hp <= 0:
             game.remove_user_by_id(self.client_id)
+            if game.is_server:
+                response_queue.put(PlayerLeaveCommand(self.client_id, True))
+
+            # If I am being killed during the game
 
         return True
 

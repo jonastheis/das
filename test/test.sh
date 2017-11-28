@@ -3,13 +3,17 @@
 mkdir test/log
 
 echo "Starting Server..."
-script "python3 -m server.network.server &" -f a.log
+python3.6 -m server.app --users ./test/map.json --vis &
+
+sleep 2
 
 for ((i = 1; i <= $1; i++)); do
-    echo "Spawning client number $i"
-    python3 -m test.simple 2>&1> test/log/client_$i.log &
+#    echo "Spawning client number $i"
+    python3.6 -m client.app --log-prefix "$i" &
+    sleep .5
 done
 
-
-echo "Done. Check log files (tail -f log/server.log)."
+# To keep the vis in the server going
+sleep 1000000
+#echo "Done. Check log files (tail -f log/server.log)."
 

@@ -33,6 +33,7 @@ class ClientTransport:
                     # TODO: double check if that's the correct behaviour
                     # execute all commands from server
                     command_obj = Command.from_json(data)
+                    logger.debug("Transport :: received command {}".format(command_obj))
                     command_obj.apply(self.game)
 
 

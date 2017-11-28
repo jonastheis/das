@@ -84,13 +84,12 @@ class ThreadedServer(object):
         """
         while True:
             command = self.response_queue.get()
-            logger.debug('dispatching [{}...] '.format(command.__str__()[:25]))
+            logger.debug('dispatching [{}...] '.format(command.__str__()[:45]))
 
             if type(command) is NewPlayerCommand:
                 # Note that the issuer of this command (joining client)
                 # is explicitly waiting for this response
                 self.clients[command.client_id].send(command.to_json())
-
                 self.broadcast(command.to_json_broadcast(), command.client_id)
 
             elif type(command) is PlayerLeaveCommand and command.is_killed:
@@ -100,7 +99,6 @@ class ThreadedServer(object):
                 self.clients[command.client_id].socket.close()
                 if command.client_id in self.clients:
                     del self.clients[command.client_id]
-
 
             else:
                 # if type is PlayerLeave and is_killed == true, we will come here wither way
