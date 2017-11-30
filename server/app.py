@@ -15,13 +15,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DAS Server app')
     parser.add_argument("--users", nargs="?", dest="users", required=False)
     parser.add_argument("--port", nargs="?", dest="port" , default=TRANSPORT.port)
-    parser.add_argument("--vis", action="store_true")
 
     args = parser.parse_args()
 
     init_logger("log/server.log")
 
-    logger.debug(args)
     request_queue = multiprocessing.Queue()
     response_queue = multiprocessing.Queue()
 
@@ -29,8 +27,9 @@ if __name__ == '__main__':
     if args.users:
         initial_users = json.load(open(args.users))
 
-    engine = Engine(request_queue, response_queue, initial_users, args.vis)
+    engine = Engine(request_queue, response_queue, initial_users)
     engine.start()
 
     server = ThreadedServer(request_queue, response_queue, int(args.port), '')
     server.listen()
+

@@ -24,14 +24,12 @@ def init_logger(file):
     # clear contents from previous run
     open(file, 'w').close()
 
-    handler = logging.FileHandler(file)
-
+    fileHandler = logging.FileHandler(file)
     formatter = logging.Formatter(
-        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+        '%(asctime)s %(name)-2s %(levelname)-8s %(message)s')
+    fileHandler.setFormatter(formatter)
 
-    handler.setFormatter(formatter)
-
-    logger.addHandler(handler)
+    logger.addHandler(fileHandler)
     logger.setLevel(logging.DEBUG)
 
     logger.debug("Logger initialized")

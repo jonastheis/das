@@ -72,7 +72,7 @@ class Client(object):
         """
         self.up = False
         self.socket.close()
-        self.server.remove_client(self.id)
+        self.server.remove_connection(self.id)
 
     def send(self, data):
         """

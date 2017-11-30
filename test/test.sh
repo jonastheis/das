@@ -3,7 +3,7 @@
 mkdir test/log
 
 echo "Starting Server..."
-python3.6 -m server.app --users ./test/map.json --vis &
+python3.6 -m server.app --users ./test/map.json &
 
 sleep 2
 
