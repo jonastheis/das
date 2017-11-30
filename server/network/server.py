@@ -1,8 +1,7 @@
-import socket
 import hashlib
 import threading
 from common.constants import logger
-from .client import Client
+from .client import ClientConnection
 from common.command import NewPlayerCommand, PlayerLeaveCommand
 from .base_server import BaseServer
 
@@ -13,7 +12,6 @@ class ThreadedServer(BaseServer):
         Listens for incoming connections and spawns a new Client (therefore also a thread) per connection.
         Waits in another thread for the response queue from the engine and dispatches events to the corresponding clients.
         """
-
         BaseServer.__init__(self,request_queue, response_queue, port, host)
 
         # start intermediate to assign responses to clients
@@ -24,7 +22,7 @@ class ThreadedServer(BaseServer):
         # create socket connection to client and remember relationship between id -> socket
         id = hashlib.md5("{0}:{1}".format(address[0], address[1]).encode('utf-8')).hexdigest()
         logger.info("Connection from {0}:{1}".format(address[0], address[1]))
-        new_client = Client(connection, address, id, self)
+        new_client = ClientConnection(connection, address, id, self)
         self.connections[id] = new_client
         new_client.setup_client(id)
 
@@ -55,7 +53,7 @@ class ThreadedServer(BaseServer):
                 self.broadcast(command.to_json_broadcast(), command.client_id)
 
             elif type(command) is PlayerLeaveCommand and command.is_killed:
-                #@Jonas I didn't use the self.remove_client() because that Adds another PlayerLeave to the queue.
+                #@Jonas I didn't use the self.remove_connection() because that Adds another PlayerLeave to the queue.
                 # We should rethink this a bit
                 self.connections[command.client_id].up = False
                 self.connections[command.client_id].socket.close()
