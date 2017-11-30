@@ -1,4 +1,4 @@
-import math, sys, argparse
+import math, argparse
 from common.game import Game
 from client.network.transport import ClientTransport
 from common.constants import TRANSPORT, USERS, DIRECTIONS, init_logger, logger
@@ -135,7 +135,7 @@ class ClientApp():
         threading.Thread(target=self._run, args=(commands_per_second,)).start()
 
     def _run(self, command_per_second):
-        while True:
+        while self.game.up:
             time.sleep(1/command_per_second)
             # Generate one or max two new commands that will be appended to the end of the list
             self._generate_commands(1)
@@ -163,10 +163,7 @@ if __name__ == "__main__":
     init_logger("log/client_{}.log".format(args.prefix))
     client = ClientApp(int(args.port))
 
-    try:
-        client.run(.5)
-    except:
-        sys.exit()
+    client.run(.5)
 
     # start visualization
     if args.vis:

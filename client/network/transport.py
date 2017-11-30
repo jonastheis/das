@@ -1,4 +1,4 @@
-import socket, threading, select, sys, json
+import socket, threading, select, json
 from common.network_util import read_message, pack, TCPConnectionError
 from common.constants import *
 from common.command import Command
@@ -9,12 +9,11 @@ class ClientTransport:
         self.id = None
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
-        self.up = True
 
         logger.info("Transport Client listening connected to port {}".format(port))
 
     def check_recv(self):
-        while self.up:
+        while self.game.up:
             socket_list = [self.sock]
             read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
             for sock in read_sockets:
@@ -24,11 +23,12 @@ class ClientTransport:
                 except TCPConnectionError as e:
                     logger.info(str(e))
                     self.shutdown()
+                    return
 
                 if not data:
                     logger.info('\nDisconnected from server')
                     self.shutdown()
-
+                    return
                 else:
                     # TODO: double check if that's the correct behaviour
                     # execute all commands from server
@@ -72,9 +72,8 @@ class ClientTransport:
 
 
     def shutdown(self):
-        self.up = False
+        self.game.up = False
         self.sock.close()
-        sys.exit(1)
 
 
 

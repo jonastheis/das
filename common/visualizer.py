@@ -39,7 +39,7 @@ class Visualizer(object):
         col = round(screen.width / len(self.game.map))
         row = round(screen.height / len(self.game.map[0]))
 
-        while True:
+        while self.game.up:
             for i in range(0, len(self.game.map)):
                 for j in range(0, len(self.game.map[0])):
                     obj = self.game.map[i][j]
