@@ -4,8 +4,14 @@ import common.event
 import zipfile
 import os
 import time
+from decimal import localcontext, Decimal
 
 # This auxiliary class has methods to support the manipulation of GTA (Game Track Activity) files.
+PLAYER_QUITING = " PLAYER_QUITING"
+PLAYER_LOGOUT = " PLAYER_LOGOUT"
+PLAYER_LOGIN = " PLAYER_LOGIN"
+
+
 class GTAEventsReader:
 
     def __init__(self):
@@ -30,10 +36,14 @@ def IdentifyLoginLogoutEvents(onlyEvents):
         if timeOfFirstEvent > eventTime or timeOfFirstEvent == 0:
             timeOfFirstEvent = eventTime
 
-        if (" PLAYER_LOGIN" == information[3]) or (" PLAYER_LOGOUT" == information[3]):
+        if (PLAYER_LOGIN == information[3]) or (PLAYER_LOGOUT == information[3]) or (PLAYER_QUITING == information[3]):
 
             playerId = information[1]
-            eventType = information[3]
+
+            if(PLAYER_QUITING != information[3]):
+                eventType = information[3]
+            else:
+                eventType = PLAYER_LOGOUT
 
             detectedEvent = common.event.Event(eventType, playerId, eventTime)
 
@@ -145,7 +155,10 @@ def NormalizeEvents(listOfEvents, newElapsedTimeFrame):
 
         # Computes the normalized timestamp and creates a new Event object which will be added to a new list of Events
         for event in listOfEvents:
-            newTimeStamp = newElapsedTimeFrame * (event.timeStamp - timeOfFirstEvent) / eventsElapsedTime
+
+            eventTime = Decimal(event.timeStamp) - Decimal(timeOfFirstEvent)
+
+            newTimeStamp = Decimal(newElapsedTimeFrame * (eventTime)) / Decimal(eventsElapsedTime)
 
             normalizedEvent = common.event.Event(event.eventType, event.playerId, newTimeStamp)
 
