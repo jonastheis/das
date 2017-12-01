@@ -15,12 +15,13 @@ class Engine(multiprocessing.Process):
     Once launched it remains running.
     """
 
-    def __init__(self, request_queue, response_queue, initial_users):
+    def __init__(self, request_queue, response_queue, initial_users, vis=False):
         multiprocessing.Process.__init__(self)
         self.request_queue = request_queue
         self.response_queue = response_queue
         self.game = game.Game()
         self.game.is_server = True
+        self.vis = vis
         for user in initial_users:
             self.game.add_user(User(user['type']), user['r'], user['c'])
 
@@ -33,11 +34,15 @@ class Engine(multiprocessing.Process):
         Overloaded function provided by multiprocessing.Process. Called upon start().
         """
 
-        threading.Thread(target=self._run).start()
+        # visualizer needs to run in main thread
+        if self.vis:
+            threading.Thread(target=self._run).start()
 
-        # start visualization
-        visualizer = Visualizer(self.game)
-        visualizer.visualize()
+            # start visualization
+            visualizer = Visualizer(self.game)
+            visualizer.visualize()
+        else:
+            self._run()
 
     def _run(self):
         while True:

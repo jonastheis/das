@@ -17,6 +17,7 @@ if __name__ == '__main__':
     parser.add_argument("--users", nargs="?", dest="users", required=False)
     parser.add_argument("--config", nargs="?", dest="config", required=False)
     parser.add_argument("--port", nargs="?", dest="port" , default=TRANSPORT.port)
+    parser.add_argument("--vis", action="store_true")
     parser.add_argument("--log-prefix", dest="prefix", default="DEFAULT")
     parser.add_argument("--peer")
 
@@ -36,7 +37,7 @@ if __name__ == '__main__':
         config = json.load((open(args.config)))
         peers = config['peers']
 
-    engine = Engine(request_queue, response_queue, initial_users)
+    engine = Engine(request_queue, response_queue, initial_users, args.vis)
     engine.start()
 
     client_server = ClientServer(request_queue, response_queue, int(args.port), '')
