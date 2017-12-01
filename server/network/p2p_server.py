@@ -55,10 +55,9 @@ class P2PComponent(BaseServer):
         :return:
         """
         while True:
-            if len(self.client_server._request_queue):
-                command = self.client_server._request_queue.pop()
-                logger.debug("Broadcasting {}".format(command))
-                self.broadcast(json.dumps({"type": "bc", "command": command.to_json_broadcast()}))
+            command = self.client_server.broadcast_queue.get()
+            logger.debug("Broadcasting {}".format(command))
+            self.broadcast(json.dumps({"type": "bc", "command": command.to_json_broadcast()}))
 
     def on_connection(self, connection, address):
         """
