@@ -25,7 +25,7 @@ class Engine(multiprocessing.Process):
         for user in initial_users:
             self.game.add_user(User(user['type']), user['r'], user['c'])
 
-        self.T = .5
+        self.T = 500
 
         logger.info("Engine successfully started.")
 
@@ -49,7 +49,10 @@ class Engine(multiprocessing.Process):
             self.process_commands()
 
             # periodically process commands
-            time.sleep(self.T)
+            time_ms = int(round(time.time() * 1000))
+            time_sync = int(time_ms/self.T) * self.T + self.T
+
+            time.sleep((time_sync - time_ms) / 1000)
 
     def get_all_requests(self):
         """
