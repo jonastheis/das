@@ -1,3 +1,4 @@
+import time
 from .base_connection import BaseConnection
 from common import command
 
@@ -13,6 +14,8 @@ class ClientConnection(BaseConnection):
 
     def on_message(self, data):
         command_obj = command.Command.from_json(data)
+        # set time of command to synchronised server time
+        command_obj.timestamp = time.time()
         self.server.request_command(command_obj)
 
 

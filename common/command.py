@@ -100,7 +100,7 @@ class Command(object):
 
 
 class NewPlayerCommand(Command):
-    def __init__(self, client_id, timestamp=time.time(), player_dict=None):
+    def __init__(self, client_id, timestamp=0, player_dict=None):
         Command.__init__(self, client_id, timestamp)
         self.initial_state = ""
         self.player_dict = player_dict
@@ -126,7 +126,7 @@ class NewPlayerCommand(Command):
 
 
 class PlayerLeaveCommand(Command):
-    def __init__(self, client_id, is_killed=False, timestamp=time.time()):
+    def __init__(self, client_id, is_killed=False, timestamp=0):
         Command.__init__(self, client_id, timestamp)
         self.is_killed = is_killed
 
@@ -136,7 +136,7 @@ class PlayerLeaveCommand(Command):
 
 
 class MoveCommand(Command):
-    def __init__(self, client_id, value, direction, timestamp=time.time()):
+    def __init__(self, client_id, value, direction, timestamp=0):
         Command.__init__(self, client_id, timestamp)
         self.value = value
         self.direction = direction
@@ -191,7 +191,7 @@ class MoveCommand(Command):
 
 
 class AttackCommand(Command):
-    def __init__(self, client_id, target_id, timestamp=time.time()):
+    def __init__(self, client_id, target_id, timestamp=0):
         Command.__init__(self, client_id, timestamp)
         self.target_id = target_id
         self.user_id = client_id
@@ -225,7 +225,7 @@ class AttackCommand(Command):
         if attacker.hp <= 0:
             game.remove_user_by_id(self.client_id)
             if game.is_server:
-                response_queue.put(PlayerLeaveCommand(self.client_id, True))
+                response_queue.put(PlayerLeaveCommand(self.client_id, True, timestamp=time.time()))
 
             # If I am being killed during the game
 
@@ -233,7 +233,7 @@ class AttackCommand(Command):
 
 
 class HealCommand(Command):
-    def __init__(self, client_id, target_id, timestamp=time.time()):
+    def __init__(self, client_id, target_id, timestamp=0):
         Command.__init__(self, client_id, timestamp)
         self.target_id = target_id
 

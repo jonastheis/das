@@ -1,6 +1,7 @@
 import hashlib
 import threading
 import queue
+import time
 from common.constants import logger
 from .client_connection import ClientConnection
 from common.command import NewPlayerCommand, PlayerLeaveCommand
@@ -33,7 +34,7 @@ class ClientServer(BaseServer):
         new_client.setup_client(id)
 
         # send new player command to game engine
-        self.request_command(NewPlayerCommand(id))
+        self.request_command(NewPlayerCommand(id, timestamp=time.time()))
 
 
     def request_command(self, command):
