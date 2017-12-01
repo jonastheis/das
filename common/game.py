@@ -14,6 +14,7 @@ class Game:
         self.commands = []
         self.users = []
         self.is_server = False
+        self.up = True
 
 
     def __str__(self):

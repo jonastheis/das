@@ -2,7 +2,6 @@ import struct
 
 SIZE_BYTES = 2
 STRUCT_IDENTIFIER = ">H"  # big-endian unsigned short (2 bytes)
-MAX_SIZE = 65535  # unsigned 2 bytes
 
 
 def pack(data):
@@ -21,18 +20,35 @@ def read_message(socket):
     """
     Receives a message from a TCP socket of various length.
     The first to bytes in big-endian order signal the size of the current message to receive.
-    By first receiving the message in chunks there is a performance gain of up to 10x.
     :param socket: the socket to receive from
     :return: the full received message as a utf8 string
     """
+
+    # read 2 bytes to determine size of message
+    size_data = read_bytes_from_socket(socket, SIZE_BYTES)
+    # get message size from struct
+    message_size = struct.unpack(STRUCT_IDENTIFIER, size_data)[0]
+
+    # read actual message
+    data = read_bytes_from_socket(socket, message_size)
+    return data.decode('utf8')
+
+
+def read_bytes_from_socket(socket, size):
+    """
+    Reads #size bytes from the socket
+    :param socket: the socket to receive from
+    :param size: the amount of bytes to read
+    :return:
+    """
     total_len = 0
     total_data = []
-    size = MAX_SIZE
+    recv_size = size
 
-    size_data = b""
-    recv_size = 8192
+    # read #size bytes from socket
     while total_len < size:
         try:
+            # note: socket.recv can return before receiving full size
             sock_data = socket.recv(recv_size)
         except:
             raise TCPConnectionError("Socket Closed")
@@ -40,24 +56,15 @@ def read_message(socket):
         # if empty -> connection is closing
         if not sock_data:
             raise TCPConnectionError("Connection error while reading data.")
-        elif not total_data:
-            # first time receiving -> check whether it's enough bytes to read the total size of message
-            if len(sock_data) > SIZE_BYTES:
-                size_data = sock_data
-                size = struct.unpack(STRUCT_IDENTIFIER, size_data[:SIZE_BYTES])[0]  # expect big endian unsigned short
-                recv_size = size
-                total_data.append(size_data[SIZE_BYTES:])
-            else:
-                # if not enough add to size_data and read again from socket
-                size_data.join([sock_data])
         else:
-            # append chunk to total data
             total_data.append(sock_data)
+            # calculate total_len from all chunks in total_data
+            total_len = sum([len(i) for i in total_data])
 
-        # calculate total_len from all chunks in total_data
-        total_len = sum([len(i) for i in total_data])
+            # adjust receive size to not receive too much data (e.g. from the next message)
+            recv_size = size - total_len
 
-    return b"".join(total_data).decode('utf8')
+    return b"".join(total_data)
 
 
 class TCPConnectionError(Exception):

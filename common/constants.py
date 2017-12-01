@@ -1,4 +1,5 @@
 import logging
+import os
 
 class ACTIONS:
     MOVE = 'move'
@@ -21,6 +22,13 @@ class USERS:
 logger = logging.getLogger()
 
 def init_logger(file):
+
+    #If log directory doesn't exist creates it
+
+    dirname = os.path.dirname(file)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+
     # clear contents from previous run
     open(file, 'w').close()
 
