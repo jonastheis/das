@@ -11,11 +11,10 @@ class BaseConnection(object):
     Runs in separate thread and listens for input of the socket.
     """
 
-    def __init__(self, socket, address, id, server):
+    def __init__(self, socket, address, id):
         self.socket = socket
         self.address = address
         self.id = id
-        self.server = server
         self.up = True
 
         self.inputs = [self.socket]
@@ -75,5 +74,6 @@ class BaseConnection(object):
         Sends the data via the socket.
         :param data: the data to be sent
         """
+        logger.debug("Connection {} :: sending message [{}]".format(self.id, data[:30]))
         self.socket.sendall(pack(data))
 

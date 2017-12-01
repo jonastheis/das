@@ -5,7 +5,7 @@ from .client import ClientConnection
 from common.command import NewPlayerCommand, PlayerLeaveCommand
 from .base_server import BaseServer
 
-class ThreadedServer(BaseServer):
+class ClientServer(BaseServer):
     def __init__(self, request_queue, response_queue, port, host="127.0.0.1"):
         """
         Handler for all the incoming TCP connections of the clients.
@@ -15,7 +15,9 @@ class ThreadedServer(BaseServer):
         BaseServer.__init__(self,request_queue, response_queue, port, host)
 
         # start intermediate to assign responses to clients
-        threading.Thread(target=self.dispatch_responses).start()
+        dispatch_thread = threading.Thread(target=self.dispatch_responses)
+        dispatch_thread.daemon = True
+        dispatch_thread.start()
 
 
     def on_connection(self, connection, address):
@@ -27,7 +29,6 @@ class ThreadedServer(BaseServer):
         new_client.setup_client(id)
 
         # send new player command to game engine
-        # @Jonas: I thought timestamp would be time of the creation of each command, hence could be created inside
         self.request_command(NewPlayerCommand(id))
 
 

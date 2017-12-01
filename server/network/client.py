@@ -7,6 +7,10 @@ class ClientConnection(BaseConnection):
     Runs in separate thread and listens for input of the socket.
     """
 
+    def __init__(self, connection, address, id, server):
+        BaseConnection.__init__(self, connection, address, id)
+        self.server = server
+
     def on_message(self, data):
         command_obj = command.Command.from_json(data)
         self.server.request_command(command_obj)

@@ -1,7 +1,8 @@
-import json
+import json, time
 import multiprocessing, argparse
 from server.core.engine import Engine
-from server.network.server import ThreadedServer
+from server.network.p2p_server import P2PComponent
+from server.network.server import ClientServer
 from common.command import init_logger, logger
 from common.constants import TRANSPORT
 
@@ -15,10 +16,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DAS Server app')
     parser.add_argument("--users", nargs="?", dest="users", required=False)
     parser.add_argument("--port", nargs="?", dest="port" , default=TRANSPORT.port)
+    parser.add_argument("--log-prefix", dest="prefix", default="DEFAULT")
+    parser.add_argument("--peer")
 
     args = parser.parse_args()
 
-    init_logger("log/server.log")
+    init_logger("log/server_{}.log".format(args.prefix))
 
     request_queue = multiprocessing.Queue()
     response_queue = multiprocessing.Queue()
@@ -30,6 +33,9 @@ if __name__ == '__main__':
     engine = Engine(request_queue, response_queue, initial_users)
     engine.start()
 
-    server = ThreadedServer(request_queue, response_queue, int(args.port), '')
-    server.listen()
+    client_server = ClientServer(request_queue, response_queue, int(args.port), '')
+    client_server.listen()
+
+    p2p_server = P2PComponent(request_queue, response_queue, int(args.port)+10, '127.0.0.1', ['127.0.0.1:7010'])
+
 

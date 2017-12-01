@@ -6,13 +6,16 @@ class User:
         if type == USERS.DRAGON:
             # Users will always be created by server. Hence Id should be given on the fly
             id = "D@{}".format(time.time())
-            self.hp = random.randint(50, 100)
-            self.ap = random.randint(5, 20)
-            # self.ap = 5
+            # self.hp = random.randint(50, 100)
+            self.hp = 50
+            # self.ap = random.randint(5, 20)
+            self.ap = 5
 
         elif type == USERS.PLAYER:
-            self.hp = random.randint(10, 20)
-            self.ap = random.randint(1, 10)
+            # self.hp = random.randint(10, 20)
+            self.hp = 15
+            # self.ap = random.randint(1, 10)
+            self.ap = 5
 
         else:
             print("Wrong player type")

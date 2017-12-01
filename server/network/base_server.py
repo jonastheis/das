@@ -1,4 +1,4 @@
-import socket
+import socket, threading
 from common.constants import logger
 
 class BaseServer(object):
@@ -22,8 +22,11 @@ class BaseServer(object):
         Start listening for connections.
         Once accepted, on_connection will be called.
         """
+        threading.Thread(target=self._listen).start()
+
+    def _listen(self):
         self.sock.listen()
-        logger.info("Server @ port {} listening".format(self.port))
+        logger.info("Server @ port {} listening...".format(self.port))
         while True:
             # wait for incoming connections
             connection, address = self.sock.accept()
