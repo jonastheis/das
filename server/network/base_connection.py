@@ -74,6 +74,6 @@ class BaseConnection(object):
         Sends the data via the socket.
         :param data: the data to be sent
         """
-        logger.debug("Connection {} :: sending message [{}]".format(self.id, data[:30]))
+        logger.debug("Connection {} :: sending message [{}]".format(self.id, data[:50]))
         self.socket.sendall(pack(data))
 

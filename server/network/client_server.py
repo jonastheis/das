@@ -1,7 +1,7 @@
 import hashlib
 import threading
 from common.constants import logger
-from .client import ClientConnection
+from .client_connection import ClientConnection
 from common.command import NewPlayerCommand, PlayerLeaveCommand
 from .base_server import BaseServer
 
@@ -18,6 +18,9 @@ class ClientServer(BaseServer):
         dispatch_thread = threading.Thread(target=self.dispatch_responses)
         dispatch_thread.daemon = True
         dispatch_thread.start()
+
+        # This is an array that the p2p_server will read from
+        self._request_queue = []
 
 
     def on_connection(self, connection, address):
@@ -37,7 +40,11 @@ class ClientServer(BaseServer):
         Put an event on the request queue to the engine.
         :param event: the event to be passed to the engine
         """
+        # Will be read by the p2p_server
+        self._request_queue.append(command)
+
         self.request_queue.put(command)
+
 
     def dispatch_responses(self):
         """

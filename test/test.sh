@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-mkdir test/log
 
 echo "Starting Server..."
-python3.6 -m server.app --users ./test/map.json &
+python3.6 -m server.app --users ./test/das_map.json &
 
 sleep 2
 

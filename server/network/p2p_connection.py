@@ -6,7 +6,7 @@ from common.constants import logger
 class P2PConnection(BaseConnection):
 
     def __init__(self, socket, address, id, server):
-        BaseConnection.__init__(self, socket, address, id )
+        BaseConnection.__init__(self, socket, address, id)
         self.server = server
         self.heartbeat = 10000
 
@@ -18,6 +18,8 @@ class P2PConnection(BaseConnection):
 
         elif json_data['type'] == 'bc':
             pass
+            # Put the message in the queue
+            # self.server.client_server.request_queue.put()
         else:
             logger.warn("Unrecognized message received from peer [{}]".format(data))
 
