@@ -2,6 +2,7 @@ import json
 
 from .base_connection import BaseConnection
 from common.constants import logger
+from common import command
 
 class P2PConnection(BaseConnection):
 
@@ -13,13 +14,16 @@ class P2PConnection(BaseConnection):
     def on_message(self, data):
         json_data = json.loads(data)
 
-        if json_data['type'] == 'hb' :
+        if json_data['type'] == 'hb':
             self.heartbeat += 1000
 
         elif json_data['type'] == 'bc':
-            pass
             # Put the message in the queue
-            # self.server.client_server.request_queue.put()
+            command_obj = command.Command.from_json(json_data['command'])
+            self.server.request_queue.put(command_obj)
+        elif json_data['type'] == 'init':
+            #self.server.request_queue.put(json_data['initial_state'])
+            pass
         else:
             logger.warn("Unrecognized message received from peer [{}]".format(data))
 

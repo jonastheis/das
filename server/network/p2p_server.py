@@ -57,6 +57,7 @@ class P2PComponent(BaseServer):
         while True:
             command = self.client_server.broadcast_queue.get()
             logger.debug("Broadcasting {}".format(command))
+            # TODO: check whether to_json_broadcast always works
             self.broadcast(json.dumps({"type": "bc", "command": command.to_json_broadcast()}))
 
     def on_connection(self, connection, address):
@@ -71,7 +72,8 @@ class P2PComponent(BaseServer):
         new_peer = P2PConnection(connection, address, _id, self)
         self.connections[_id] = new_peer
 
-        self.broadcast(json.dumps({"type": "debug", "msg":"A New node has just joined us!"}))
+        # TODO: How to get the game information from other process?
+        self.broadcast(json.dumps({"type": "init", "initial_state": [{"type": "d", "r": 0, "c": 0},{"type": "d", "r": 4, "c": 4}] }))
 
     def create_id(self, host, port):
         return "peer@{}:{}".format(host, port)

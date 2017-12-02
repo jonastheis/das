@@ -60,11 +60,9 @@ class BaseConnection(object):
         """
         pass
 
-
-
     def shutdown(self):
         """
-        Shuts down the socket, makes sure that the thread can die and notifies the server about the ending connection.
+        Shuts down the socket, makes sure that the thread can die.
         """
         self.up = False
         self.socket.close()

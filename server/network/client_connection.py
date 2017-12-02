@@ -18,7 +18,6 @@ class ClientConnection(BaseConnection):
         command_obj.timestamp = time.time()
         self.server.request_command(command_obj)
 
-
     def setup_client(self, id):
         """
         set up the client. blocking. the client should call a function with the same name first thing it connects.
@@ -30,5 +29,18 @@ class ClientConnection(BaseConnection):
         self.send(id)
 
     def shutdown(self):
+        """
+        Shuts down the socket, makes sure that the thread can die and notifies the server about the ending connection.
+        """
+        BaseConnection.shutdown(self)
+        self.server.remove_connection(self.id)
+
+        # need to notify engine about the connection loss with the client -> so he can be removed from the field
+        self.server.request_command(command.PlayerLeaveCommand(self.id, is_killed=False, timestamp=time.time()))
+
+    def shutdown_killed(self):
+        """
+        Shuts down the socket, makes sure that the thread can die.
+        """
         BaseConnection.shutdown(self)
         self.server.remove_connection(self.id)

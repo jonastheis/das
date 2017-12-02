@@ -48,7 +48,7 @@ class BaseServer(object):
 
     def remove_connection(self, id):
         """
-        Removes the client from the list of currently connected clients and notifies the engine about it.
+        Removes the client from the list of currently connected clients.
         :param id: the client to be removed
         """
         if id in self.connections:

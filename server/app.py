@@ -37,16 +37,22 @@ if __name__ == '__main__':
         config = json.load((open(args.config)))
         peers = config['peers']
 
-    engine = Engine(request_queue, response_queue, initial_users, args.vis)
-    engine.start()
-
     client_server = ClientServer(request_queue, response_queue, int(args.port), '')
     client_server.listen()
 
     p2p_server = P2PComponent(
         request_queue, response_queue,
         client_server,
-        int(args.port)+10, '127.0.0.1',
+        int(args.port) + 10, '127.0.0.1',
         peers)
+
+    if not initial_users:
+        # TODO: maybe wait for all game states? Or just assume that they are all in sync and we just take the first one and ignore the others in the engine
+        # problem: there could be other commands already in between
+        print("waiting for initial game state")
+        #initial_users = request_queue.get()
+
+    engine = Engine(request_queue, response_queue, initial_users, args.vis)
+    engine.start()
 
 

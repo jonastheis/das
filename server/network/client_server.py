@@ -7,6 +7,7 @@ from .client_connection import ClientConnection
 from common.command import NewPlayerCommand, PlayerLeaveCommand
 from .base_server import BaseServer
 
+
 class ClientServer(BaseServer):
     def __init__(self, request_queue, response_queue, port, host="127.0.0.1"):
         """
@@ -24,7 +25,6 @@ class ClientServer(BaseServer):
         # This is a queue that the p2p_server will read from
         self.broadcast_queue = queue.Queue()
 
-
     def on_connection(self, connection, address):
         # create socket connection to client and remember relationship between id -> socket
         id = hashlib.md5("{0}:{1}".format(address[0], address[1]).encode('utf-8')).hexdigest()
@@ -36,17 +36,15 @@ class ClientServer(BaseServer):
         # send new player command to game engine
         self.request_command(NewPlayerCommand(id, timestamp=time.time()))
 
-
     def request_command(self, command):
         """
-        Put an event on the request queue to the engine.
-        :param event: the event to be passed to the engine
+        Put a command on the request queue to the engine.
+        :param command: the command to be passed to the engine
         """
         # Will be read by the p2p_server
         self.broadcast_queue.put(command)
 
         self.request_queue.put(command)
-
 
     def dispatch_responses(self):
         """
@@ -57,21 +55,16 @@ class ClientServer(BaseServer):
             logger.debug('dispatching [{}...] '.format(command.__str__()[:45]))
 
             if type(command) is NewPlayerCommand:
-                # Note that the issuer of this command (joining client)
-                # is explicitly waiting for this response
-                self.connections[command.client_id].send(command.to_json())
+                # joining client is explicitly waiting for this response
+                if command.client_id in self.connections:  # only if client is connected to this server
+                    self.connections[command.client_id].send(command.to_json())
                 self.broadcast(command.to_json_broadcast(), command.client_id)
 
             elif type(command) is PlayerLeaveCommand and command.is_killed:
-                #@Jonas I didn't use the self.remove_connection() because that Adds another PlayerLeave to the queue.
-                # We should rethink this a bit
-                self.connections[command.client_id].up = False
-                self.connections[command.client_id].socket.close()
-                if command.client_id in self.connections:
-                    del self.connections[command.client_id]
+                # shutdown ClientConnection if player gets killed (without notifying engine)
+                if command.client_id in self.connections:  # only if client is connected to this server
+                    self.connections[command.client_id].shutdown_killed()
 
             else:
-                # if type is PlayerLeave and is_killed == true, we will come here wither way
-                # broadcast to all others
                 self.broadcast(command.to_json_broadcast())
 
