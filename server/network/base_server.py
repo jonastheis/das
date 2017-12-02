@@ -47,7 +47,10 @@ class BaseServer(object):
         """
         for client_id in self.connections:
             if client_id != without:
-                self.connections[client_id].send(data)
+                try:
+                    self.connections[client_id].send(data)
+                except BaseException as e:
+                    logger.error("Failed sending message to {} : data {}".format(self.connections[client_id], data))
 
     def remove_connection(self, id):
         """

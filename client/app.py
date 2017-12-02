@@ -19,7 +19,7 @@ class ClientApp():
         id, map = self.transport_layer.setup_client()
         self.id = id
         # replace json objects with user object (oh I miss you JS :( )
-        self.game.from_serialized_map(map, id)
+        self.game.from_serialized_map(map)
         logger.info("Setup data -> id: {0}".format(id))
 
         self.transport_layer.id = id

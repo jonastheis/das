@@ -30,6 +30,8 @@ if __name__ == '__main__':
 
     request_queue = multiprocessing.Queue()
     response_queue = multiprocessing.Queue()
+    meta_request_queue = multiprocessing.Queue()
+    meta_response_queue = multiprocessing.Queue()
 
     initial_users = []
     if args.users:
@@ -44,18 +46,17 @@ if __name__ == '__main__':
     client_server.listen()
 
     p2p_server = P2PComponent(
-        request_queue, response_queue,
+        request_queue, response_queue, meta_request_queue, meta_response_queue,
         client_server,
         int(args.port) + 10, '127.0.0.1',
         peers)
 
     if not initial_users:
-        # TODO: maybe wait for all game states? Or just assume that they are all in sync and we just take the first one and ignore the others in the engine
-        # problem: there could be other commands already in between
-        print("waiting for initial game state")
-        #initial_users = request_queue.get()
-
-    engine = Engine(request_queue, response_queue, initial_users, args.vis)
-    engine.start()
-
-
+        # ask (blocking) other servers for the initial game state
+        initial_state = p2p_server.gather_initial_state()
+        engine = Engine(request_queue, response_queue, meta_request_queue, meta_response_queue, initial_users, args.vis)
+        engine.game.from_serialized_map(initial_state)
+        engine.start()
+    else:
+        engine = Engine(request_queue, response_queue, meta_request_queue, meta_response_queue, initial_users, args.vis)
+        engine.start()

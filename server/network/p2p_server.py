@@ -2,13 +2,13 @@ import json
 from .base_server import BaseServer
 from .p2p_connection import P2PConnection
 import socket, threading
-
+import queue
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 
 class P2PComponent(BaseServer):
-    def __init__(self, request_queue, response_queue, client_server, port, host="127.0.0.1", peers=[]):
+    def __init__(self, request_queue, response_queue, meta_request_queue, meta_response_queue, client_server, port, host="127.0.0.1", peers=[]):
         """
         :param request_queue:
         :param response_queue:
@@ -24,6 +24,9 @@ class P2PComponent(BaseServer):
         """
         BaseServer.__init__(self, request_queue, response_queue, port, host=host)
         self.client_server = client_server
+        self.meta_request_queue = meta_request_queue
+        self.meta_response_queue = meta_response_queue
+        self.init_queue = queue.Queue()
 
         # Initial connection to all other peers
         for peer in peers:
@@ -76,10 +79,6 @@ class P2PComponent(BaseServer):
         new_peer = P2PConnection(connection, address, _id, self)
         self.connections[_id] = new_peer
 
-        # TODO: How to get the game information from other process?
-        # @Joans shouldn't this be sent to JUST the one new peer?
-        self.broadcast(json.dumps({"type": "init", "initial_state": [{"type": "d", "r": 0, "c": 0},{"type": "d", "r": 4, "c": 4}] }))
-
     def create_id(self, host, port):
         return "peer@{}:{}".format(host, port)
 
@@ -130,3 +129,19 @@ class P2PComponent(BaseServer):
         self.connections[id].shutdown()
         logger.error("Peer {} removed".format(id))
         BaseServer.remove_connection(self, id)
+
+    def gather_initial_state(self):
+        """
+        Gathers (blocking) the initial game state from all other servers.
+        :return: initial game state
+        """
+        for connection in self.connections:
+            try:
+                self.connections[connection].send(json.dumps({"type": "init_req"}))
+            except BaseException as e:
+                logger.warning("Peer {} -> failed to request initial game state".format(connection))
+
+        # wait for init_res of other servers -> will be put on the init_queue
+        # right now we take the first response and assume that all servers are in sync with that state
+        return self.init_queue.get()
+

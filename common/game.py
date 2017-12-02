@@ -67,7 +67,7 @@ class Game:
                     _map[i][j] = (_map[i][j]).to_json()
         return _map
 
-    def from_serialized_map(self, _map, id):
+    def from_serialized_map(self, _map):
         for i in range(len(_map)):
             for j in range(len(_map[0])):
                 if _map[i][j] != 0:

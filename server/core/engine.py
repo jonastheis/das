@@ -17,10 +17,12 @@ class Engine(multiprocessing.Process):
     Once launched it remains running.
     """
 
-    def __init__(self, request_queue, response_queue, initial_users, vis=False):
+    def __init__(self, request_queue, response_queue, meta_request_queue, meta_response_queue, initial_users, vis=False):
         multiprocessing.Process.__init__(self)
         self.request_queue = request_queue
         self.response_queue = response_queue
+        self.meta_request_queue = meta_request_queue
+        self.meta_response_queue = meta_response_queue
         self.game = game.Game()
         self.game.is_server = True
         self.vis = vis
@@ -35,6 +37,9 @@ class Engine(multiprocessing.Process):
         """
         Overloaded function provided by multiprocessing.Process. Called upon start().
         """
+
+        # start meta_request thread
+        self.process_meta_requests()
 
         # visualizer needs to run in main thread
         if self.vis:
@@ -94,3 +99,18 @@ class Engine(multiprocessing.Process):
         else:
             logger.warning("Interval reached. No command to process")
 
+    def process_meta_requests(self):
+        """
+        Starts the meta_request thread.
+        """
+        threading.Thread(target=self._process_meta_requests).start()
+
+    def _process_meta_requests(self):
+        """
+        Waits (blocking) for requests from the server process and handles them.
+        """
+        while True:
+            req = self.meta_request_queue.get()
+
+            if req['type'] == "get_map":
+                self.meta_response_queue.put(self.game.serialize())

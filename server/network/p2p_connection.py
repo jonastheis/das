@@ -28,9 +28,14 @@ class P2PConnection(BaseConnection):
             command_obj = command.Command.from_json(json_data['command'])
             self.server.request_queue.put(command_obj)
 
-        elif json_data['type'] == 'init':
-            #self.server.request_queue.put(json_data['initial_state'])
-            pass
+        elif json_data['type'] == 'init_req':
+            self.server.meta_request_queue.put({"type": "get_map"})
+
+            # if we start using the meta queue for other purposes we need to properly process it
+            initial_map = self.server.meta_response_queue.get()
+            self.send(json.dumps({'type': 'init_res', 'initial_map': initial_map}))
+        elif json_data['type'] == 'init_res':
+            self.server.init_queue.put(json_data['initial_map'])
         else:
             logger.warning("Unrecognized message received from peer [{}]".format(data))
 
