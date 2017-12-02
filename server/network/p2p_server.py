@@ -86,7 +86,7 @@ class P2PComponent(BaseServer):
         """
         Send a small message to all connections
         """
-        logger.debug("Sending heartbeat to {} peers".format(len(self.connections)))
+        #logger.debug("Sending heartbeat to {} peers".format(len(self.connections)))
         for connection in self.connections:
             try:
                 self.connections[connection].send(json.dumps({"type": "hb"}))
@@ -145,3 +145,20 @@ class P2PComponent(BaseServer):
         # right now we take the first response and assume that all servers are in sync with that state
         return self.init_queue.get()
 
+    def get_current_commands(self):
+        """
+        Gets the current pending commands and puts them back on the queue.
+        :return: list of jsonified commands
+        """
+        commands = []
+        while True:
+            try:
+                commands.append(self.request_queue.get_nowait())
+            except queue.Empty:
+                break
+        commands_json = []
+        for command in commands:
+            self.request_queue.put_nowait(command)
+            commands_json.append(command.to_json_broadcast())
+
+        return commands_json

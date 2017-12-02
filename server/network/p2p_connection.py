@@ -33,9 +33,18 @@ class P2PConnection(BaseConnection):
 
             # if we start using the meta queue for other purposes we need to properly process it
             initial_map = self.server.meta_response_queue.get()
-            self.send(json.dumps({'type': 'init_res', 'initial_map': initial_map}))
+
+            # send initial map and pending commands so that the new server will be at the same state
+            self.send(json.dumps({
+                'type': 'init_res',
+                'initial_map': initial_map,
+                'pending_commands': self.server.get_current_commands()
+            }))
         elif json_data['type'] == 'init_res':
             self.server.init_queue.put(json_data['initial_map'])
+
+            for command_json in json_data['pending_commands']:
+                self.server.request_queue.put_nowait(command.Command.from_json(command_json))
         else:
             logger.warning("Unrecognized message received from peer [{}]".format(data))
 
