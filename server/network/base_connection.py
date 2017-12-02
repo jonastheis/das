@@ -1,3 +1,4 @@
+import json
 import threading
 import select
 from common.network_util import read_message, pack, TCPConnectionError
@@ -73,11 +74,12 @@ class BaseConnection(object):
         self.up = False
         self.socket.close()
 
-    def send(self, data):
+    def send(self, data, type=None):
         """
         Sends the data via the socket.
         :param data: the data to be sent
         """
+        if not type is None:
+            data = json.dumps({'type': type, 'payload': data})
         logger.debug("{} :: sending message [{}]".format(self.__str__(), data[:GLOBAL.MAX_LOG_LENGTH]))
         self.socket.sendall(pack(data))
-
