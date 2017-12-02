@@ -4,6 +4,7 @@ from .p2p_connection import P2PConnection
 import socket, threading
 import queue
 import logging
+from common.constants import MSG_TYPE
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 
@@ -65,7 +66,7 @@ class P2PComponent(BaseServer):
             command = self.client_server.broadcast_queue.get()
             logger.debug("Broadcasting {}".format(command))
             # TODO: check whether to_json_broadcast always works
-            self.broadcast(json.dumps({"type": "bc", "command": command.to_json_broadcast()}))
+            self.broadcast(json.dumps({"type": MSG_TYPE.BCAST, "command": command.to_json_broadcast()}))
 
     def on_connection(self, connection, address):
         """
@@ -89,7 +90,7 @@ class P2PComponent(BaseServer):
         #logger.debug("Sending heartbeat to {} peers".format(len(self.connections)))
         for connection in self.connections:
             try:
-                self.connections[connection].send(json.dumps({"type": "hb"}))
+                self.connections[connection].send(json.dumps({"type": MSG_TYPE.HBEAT}))
             except BaseException as e:
                 logger.warning("Peer {} -> failed to send heartbeat".format(connection))
 
@@ -137,7 +138,7 @@ class P2PComponent(BaseServer):
         """
         for connection in self.connections:
             try:
-                self.connections[connection].send(json.dumps({"type": "init_req"}))
+                self.connections[connection].send(json.dumps({'type': MSG_TYPE.INIT_REQ}))
             except BaseException as e:
                 logger.warning("Peer {} -> failed to request initial game state".format(connection))
 

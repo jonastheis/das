@@ -27,6 +27,9 @@ class MSG_TYPE:
     BCAST = 'bc'
     HBEAT = 'hb'
 
+    INIT_REQ = 'init_req'
+    INIT_RES = 'init_res'
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
