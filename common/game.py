@@ -1,6 +1,5 @@
 from common.constants import *
 import copy
-
 from common.user import User
 
 

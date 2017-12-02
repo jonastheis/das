@@ -8,7 +8,7 @@ import threading, random, time
 
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
-
+gameLogger = logging.getLogger("game." + __name__.split(".")[-1])
 
 
 class ClientApp():
@@ -98,7 +98,9 @@ class ClientApp():
             if value and move_direction:
                 return MoveCommand(self.id, value, move_direction)
 
-        logger.warning("Failed to find a simulation for player")
+        gameLogger.warning("Failed to find a simulation for player.")
+        gameLogger.error("Random debug walk...")
+        return MoveCommand(self.id, random.choice([1, -1]), random.choice([DIRECTIONS.H, DIRECTIONS.V]))
 
     def simulate_dragon(self):
         """
@@ -145,8 +147,6 @@ class ClientApp():
             self._generate_commands(1)
             if len(self.game.commands):
                 command_to_apply = self.game.commands.pop(0)
-                logger.info("Apply command: " + str(command_to_apply))
-
                 self.transport_layer.send_data(command_to_apply.to_json())
 
 if __name__ == "__main__":

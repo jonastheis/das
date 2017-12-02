@@ -49,14 +49,15 @@ def add_coloring_to_emit_ansi(fn):
         else:
             color = '\x1b[0m' # normal
         args[1].levelname = color + args[1].levelname +  '\x1b[0m'  # normal
+        args[1].name = '.'.join([bcolors.BOLD + args[1].name.split(".")[0] + bcolors.ENDC] + args[1].name.split(".")[1:])
         #print "after"
         return fn(*args)
     return new
 
 def init_logger(file):
     # Two base logger types
-    logger = logging.getLogger("sys")
-    gameLogger = logging.getLogger("events")
+    sysLogger = logging.getLogger("sys")
+    gameLogger = logging.getLogger("game")
 
     logging.StreamHandler.emit = add_coloring_to_emit_ansi(logging.StreamHandler.emit)
 
@@ -65,17 +66,21 @@ def init_logger(file):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-
     # clear contents from previous run
     open(file, 'w').close()
 
-
     fileHandler = logging.FileHandler(file)
-    formatter = logging.Formatter(
-        bcolors.HEADER + '%(asctime)s' + bcolors.ENDC + ' ' + bcolors.UNDERLINE + '%(name)s' + bcolors.ENDC + ' ' + bcolors.BOLD + ' %(levelname)s' + bcolors.ENDC + ' :: %(message)s')
+    formatter = logging.Formatter(bcolors.HEADER + '%(asctime)s' + bcolors.ENDC + ' ' + bcolors.UNDERLINE + '%(name)s' + bcolors.ENDC + ' ' + bcolors.BOLD + ' %(levelname)s' + bcolors.ENDC + ' :: %(message)s')
     fileHandler.setFormatter(formatter)
 
-    logger.addHandler(fileHandler)
-    logger.setLevel(logging.DEBUG)
+    sysLogger.addHandler(fileHandler)
+    sysLogger.setLevel(logging.DEBUG)
+    sysLogger.addHandler(fileHandler)
 
-    logger.debug("Logger initialized")
+    gameLogger.addHandler(fileHandler)
+    gameLogger.setLevel(logging.DEBUG)
+    gameLogger.addHandler(fileHandler)
+
+    sysLogger.info("System Logger initialized")
+    gameLogger.info("Game Logger initialized")
+

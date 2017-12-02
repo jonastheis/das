@@ -25,7 +25,7 @@ class ClientTransport:
                 try:
                     data = read_message(sock)
                 except TCPConnectionError as e:
-                    logger.info(str(e))
+                    logger.error(str(e))
                     self.shutdown()
                     return
 
@@ -37,7 +37,7 @@ class ClientTransport:
                     # TODO: double check if that's the correct behaviour
                     # execute all commands from server
                     command_obj = Command.from_json(data)
-                    logger.debug("received message {}".format(command_obj[:GLOBAL.MAX_LOG_LENGTH]))
+                    logger.debug("received message {}".format(command_obj.__str__()[:GLOBAL.MAX_LOG_LENGTH]))
                     command_obj.apply(self.game)
 
 
