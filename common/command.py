@@ -2,6 +2,9 @@ import json, math, time
 from common.constants import *
 from common.user import User
 
+import logging
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
+
 
 class Command(object):
     """

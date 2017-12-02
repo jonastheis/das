@@ -1,8 +1,11 @@
 import json
-from common.constants import logger
 from .base_server import BaseServer
 from .p2p_connection import P2PConnection
 import socket, threading
+
+import logging
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
+
 
 class P2PComponent(BaseServer):
     def __init__(self, request_queue, response_queue, client_server, port, host="127.0.0.1", peers=[]):
@@ -27,8 +30,9 @@ class P2PComponent(BaseServer):
             # exclude self
             if peer == "{}:{}".format(host, port):
                 continue
-            logger.debug("Attempting to connect to peer {}".format(peer))
             self.connect_to_peer(peer.split(":")[0], peer.split(":")[1])
+
+        logger.info("Current Peers {}".format(self.connections))
 
         self.listen()
         self.set_interval(self.heart_beat, 2)
@@ -73,11 +77,11 @@ class P2PComponent(BaseServer):
         self.connections[_id] = new_peer
 
         # TODO: How to get the game information from other process?
+        # @Joans shouldn't this be sent to JUST the one new peer?
         self.broadcast(json.dumps({"type": "init", "initial_state": [{"type": "d", "r": 0, "c": 0},{"type": "d", "r": 4, "c": 4}] }))
 
     def create_id(self, host, port):
         return "peer@{}:{}".format(host, port)
-
 
     def heart_beat(self):
         """
@@ -88,7 +92,7 @@ class P2PComponent(BaseServer):
             try:
                 self.connections[connection].send(json.dumps({"type": "hb"}))
             except BaseException as e:
-                logger.warn("Peer {} -> failed to send heartbeat".format(connection))
+                logger.warning("Peer {} -> failed to send heartbeat".format(connection))
 
         self.update_heartbeat_stat()
 
@@ -110,11 +114,12 @@ class P2PComponent(BaseServer):
         :param host: ip of the peer
         :param port: port of the peer
         """
+        logger.debug("Attempting to connect to peer {}".format(self.create_id(host, port)))
         new_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             new_sock.connect((host, int(port)))
         except BaseException as e :
-            logger.warn("Connection to peer@{}:{} failed [{}]".format(host, port, str(e)))
+            logger.warning("Connection to peer@{}:{} failed [{}]".format(host, port, str(e)))
             return
 
         id = self.create_id(host, port)

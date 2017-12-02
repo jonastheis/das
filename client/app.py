@@ -1,10 +1,14 @@
 import math, argparse
 from common.game import Game
 from client.network.transport import ClientTransport
-from common.constants import TRANSPORT, USERS, DIRECTIONS, init_logger, logger
+from common.constants import TRANSPORT, USERS, DIRECTIONS, init_logger
 from common.command import MoveCommand, HealCommand, AttackCommand
 from common.visualizer import Visualizer
 import threading, random, time
+
+import logging
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
+
 
 
 class ClientApp():
@@ -94,7 +98,7 @@ class ClientApp():
             if value and move_direction:
                 return MoveCommand(self.id, value, move_direction)
 
-        logger.warn("Failed to find a simulation for player")
+        logger.warning("Failed to find a simulation for player")
 
     def simulate_dragon(self):
         """

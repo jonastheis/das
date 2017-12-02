@@ -2,6 +2,10 @@ import time
 from .base_connection import BaseConnection
 from common import command
 
+import logging
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
+
+
 class ClientConnection(BaseConnection):
     """
     A wrapper for a TCP socket.

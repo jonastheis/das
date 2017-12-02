@@ -1,5 +1,8 @@
 import socket, threading
-from common.constants import logger
+
+import logging
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
+
 
 class BaseServer(object):
 

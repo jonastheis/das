@@ -1,11 +1,12 @@
-import hashlib
-import threading
-import queue
-import time
-from common.constants import logger
+import hashlib, time, queue, threading
 from .client_connection import ClientConnection
 from common.command import NewPlayerCommand, PlayerLeaveCommand
 from .base_server import BaseServer
+from common.constants import GLOBAL
+
+import logging
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
+
 
 
 class ClientServer(BaseServer):
@@ -41,6 +42,7 @@ class ClientServer(BaseServer):
         Put a command on the request queue to the engine.
         :param command: the command to be passed to the engine
         """
+
         # Will be read by the p2p_server
         self.broadcast_queue.put(command)
 
@@ -52,7 +54,7 @@ class ClientServer(BaseServer):
         """
         while True:
             command = self.response_queue.get()
-            logger.debug('dispatching [{}...] '.format(command.__str__()[:45]))
+            logger.debug('dispatching [{}] '.format(command.__str__()[:GLOBAL.MAX_LOG_LENGTH]))
 
             if type(command) is NewPlayerCommand:
                 # joining client is explicitly waiting for this response

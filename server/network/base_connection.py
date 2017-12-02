@@ -1,8 +1,10 @@
 import threading
-import select, json
+import select
 from common.network_util import read_message, pack, TCPConnectionError
-from common.constants import logger
-from common import command
+from common.constants import GLOBAL
+
+import logging
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 
 class BaseConnection(object):
@@ -22,6 +24,9 @@ class BaseConnection(object):
         self.mythread = threading.Thread(target=self._handle)
         self.mythread.start()
 
+    def __str__(self):
+        return "Connection@{}:{}".format(self.address[0], self.address[1])
+
     def _handle(self):
         """
         Listens via blocking select for inputs from the socket.
@@ -40,7 +45,7 @@ class BaseConnection(object):
                 # read_packet raises exception if there is no data -> client is disconnecting
                 try:
                     data = read_message(sock)
-                    logger.debug("Received from connection {}: [{}...]".format(self.id, data[:20]))
+                    logger.debug("{} :: Received [{}]".format(self.__str__(), data[:GLOBAL.MAX_LOG_LENGTH]))
                     # if there is data pass it to the game engine
 
                     self.on_message(data)
@@ -64,6 +69,7 @@ class BaseConnection(object):
         """
         Shuts down the socket, makes sure that the thread can die.
         """
+        logger.warning("Shutting down [{}]".format(self.__str__()))
         self.up = False
         self.socket.close()
 
@@ -72,6 +78,6 @@ class BaseConnection(object):
         Sends the data via the socket.
         :param data: the data to be sent
         """
-        logger.debug("Connection {} :: sending message [{}]".format(self.id, data[:50]))
+        logger.debug("{} :: sending message [{}]".format(self.__str__(), data[:GLOBAL.MAX_LOG_LENGTH]))
         self.socket.sendall(pack(data))
 

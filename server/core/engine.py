@@ -5,8 +5,10 @@ import threading
 from common import game
 from common.command import AttackCommand
 from common.user import User
-from common.constants import USERS, logger
 from common.visualizer import Visualizer
+
+import logging
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 
 class Engine(multiprocessing.Process):
@@ -76,7 +78,7 @@ class Engine(multiprocessing.Process):
         commands = self.get_all_requests()
 
         if len(commands):
-            logger.info("Interval reached. Processing {} commands".format(len(commands)))
+            logger.debug("Interval reached. Processing {} commands".format(len(commands)))
 
             while len(commands):
                 command = commands.pop(0)
@@ -90,5 +92,5 @@ class Engine(multiprocessing.Process):
                 if status:
                     self.response_queue.put(command)
         else:
-            logger.info("Interval reached. No command to process")
+            logger.warning("Interval reached. No command to process")
 

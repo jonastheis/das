@@ -1,10 +1,13 @@
-import json, time
+import json
 import multiprocessing, argparse
 from server.core.engine import Engine
 from server.network.p2p_server import P2PComponent
 from server.network.client_server import ClientServer
-from common.command import init_logger, logger
+from common.command import init_logger
 from common.constants import TRANSPORT
+
+import logging
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 if __name__ == '__main__':
     """

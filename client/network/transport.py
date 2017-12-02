@@ -3,6 +3,10 @@ from common.network_util import read_message, pack, TCPConnectionError
 from common.constants import *
 from common.command import Command
 
+import logging
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
+
+
 class ClientTransport:
     def __init__(self, game, port=TRANSPORT.port, host=TRANSPORT.host):
         self.game = game
@@ -10,7 +14,7 @@ class ClientTransport:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
 
-        logger.info("Transport Client listening connected to port {}".format(port))
+        logger.info("Connection established to port Server@{}:{}".format(host, port))
 
     def check_recv(self):
         while self.game.up:
@@ -26,16 +30,15 @@ class ClientTransport:
                     return
 
                 if not data:
-                    logger.info('\nDisconnected from server')
+                    logger.error('\nDisconnected from server')
                     self.shutdown()
                     return
                 else:
                     # TODO: double check if that's the correct behaviour
                     # execute all commands from server
                     command_obj = Command.from_json(data)
-                    logger.debug("Transport :: received command {}".format(command_obj))
+                    logger.debug("received message {}".format(command_obj[:GLOBAL.MAX_LOG_LENGTH]))
                     command_obj.apply(self.game)
-
 
 
     def listen(self):
@@ -65,7 +68,7 @@ class ClientTransport:
         :return:
         """
         try:
-            logger.info("Transport :: sending {}".format(data))
+            logger.debug("sending {}".format(data))
             self.sock.sendall(pack(data))
         except Exception as e:
             logger.error("Error while sending data " + str(e))
