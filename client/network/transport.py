@@ -36,10 +36,13 @@ class ClientTransport:
                 else:
                     # TODO: double check if that's the correct behaviour
                     # execute all commands from server
-                    command_obj = Command.from_json(data)
-                    logger.debug("received message {}".format(command_obj.__str__()[:GLOBAL.MAX_LOG_LENGTH]))
-                    command_obj.apply(self.game)
-
+                    json_data = json.loads(data)
+                    if json_data['type'] == MSG_TYPE.COMMAND:
+                        logger.debug("received message {}".format(data[:GLOBAL.MAX_LOG_LENGTH]))
+                        command_obj = Command.from_json(json_data['payload'])
+                        command_obj.apply(self.game)
+                    else:
+                        logger.warning("Unknown message type received")
 
     def listen(self):
         transport_thread = threading.Thread(target=self.check_recv)
@@ -52,22 +55,31 @@ class ClientTransport:
         to sent the game map and clientId
         :return: map and id
         """
+        data_id = read_message(self.sock)
+        json_id = json.loads(data_id)
+        if json_id['type'] == MSG_TYPE.INIT:
+            id = json_id['payload']
+        else:
+            raise BaseException("Failure in initializing game with the server")
 
-        id = read_message(self.sock)
         # wait until i receive my own join message. This is needed to get the initial state
         while True:
-            join_str = read_message(self.sock)
-            join_dict = json.loads(join_str)
-            if join_dict["type"] == "NewPlayerCommand" and join_dict['client_id'] == id:
-                return id, join_dict['initial_state']
+            data_join = read_message(self.sock)
+            json_join = json.loads(data_join)
+            command_join = json.loads(json_join['payload'])
+            if command_join["type"] == "NewPlayerCommand" and command_join['client_id'] == id:
+                return id, command_join['initial_state']
 
-    def send_data(self, data):
+    def send_data(self, data, type=None):
         """
         send data to server
         :param data: string data to be sent
         :return:
         """
         try:
+            if not type is None:
+                data = json.dumps({"type": type, "payload": data})
+
             logger.debug("sending {}".format(data))
             self.sock.sendall(pack(data))
         except Exception as e:

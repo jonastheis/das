@@ -39,7 +39,7 @@ class BaseServer(object):
         pass
 
 
-    def broadcast(self, data, without=None):
+    def broadcast(self, data, without=None, type=None):
         """
         Broadcast the data to all connections except "without".
         :param data: the data to be broadcasted
@@ -47,7 +47,7 @@ class BaseServer(object):
         """
         for client_id in self.connections:
             if client_id != without:
-                self.connections[client_id].send(data)
+                self.connections[client_id].send(data, type)
 
     def remove_connection(self, id):
         """

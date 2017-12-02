@@ -1,7 +1,7 @@
 import math, argparse
 from common.game import Game
 from client.network.transport import ClientTransport
-from common.constants import TRANSPORT, USERS, DIRECTIONS, init_logger
+from common.constants import TRANSPORT, USERS, DIRECTIONS, init_logger, MSG_TYPE
 from common.command import MoveCommand, HealCommand, AttackCommand
 from common.visualizer import Visualizer
 import threading, random, time
@@ -147,7 +147,7 @@ class ClientApp():
             self._generate_commands(1)
             if len(self.game.commands):
                 command_to_apply = self.game.commands.pop(0)
-                self.transport_layer.send_data(command_to_apply.to_json())
+                self.transport_layer.send_data(command_to_apply.to_json(), MSG_TYPE.COMMAND)
 
 if __name__ == "__main__":
     """

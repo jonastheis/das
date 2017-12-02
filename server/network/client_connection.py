@@ -1,6 +1,8 @@
+import json
 import time
 from .base_connection import BaseConnection
 from common import command
+from common.constants import MSG_TYPE
 
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
@@ -17,10 +19,17 @@ class ClientConnection(BaseConnection):
         self.server = server
 
     def on_message(self, data):
-        command_obj = command.Command.from_json(data)
-        # set time of command to synchronised server time
-        command_obj.timestamp = time.time()
-        self.server.request_command(command_obj)
+        json_data = json.loads(data)
+
+        if json_data['type'] == MSG_TYPE.COMMAND:
+            command_obj = command.Command.from_json(json_data['payload'])
+            # set time of command to synchronised server time
+            command_obj.timestamp = time.time()
+            self.server.request_command(command_obj)
+        elif json_data['type'] == MSG_TYPE.INIT:
+            pass
+        else:
+            logger.warning("Received an unknown message type [{}]".format(data))
 
     def setup_client(self, id):
         """
@@ -30,7 +39,7 @@ class ClientConnection(BaseConnection):
         :param id: id of the client
         :return: None
         """
-        self.send(id)
+        self.send(id, MSG_TYPE.INIT)
 
     def shutdown(self):
         """

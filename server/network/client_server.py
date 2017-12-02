@@ -2,7 +2,7 @@ import hashlib, time, queue, threading
 from .client_connection import ClientConnection
 from common.command import NewPlayerCommand, PlayerLeaveCommand
 from .base_server import BaseServer
-from common.constants import GLOBAL
+from common.constants import GLOBAL, MSG_TYPE
 
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
@@ -59,8 +59,8 @@ class ClientServer(BaseServer):
             if type(command) is NewPlayerCommand:
                 # joining client is explicitly waiting for this response
                 if command.client_id in self.connections:  # only if client is connected to this server
-                    self.connections[command.client_id].send(command.to_json())
-                self.broadcast(command.to_json_broadcast(), command.client_id)
+                    self.connections[command.client_id].send(command.to_json(), MSG_TYPE.COMMAND)
+                self.broadcast(command.to_json_broadcast(), command.client_id, MSG_TYPE.COMMAND)
 
             elif type(command) is PlayerLeaveCommand and command.is_killed:
                 # shutdown ClientConnection if player gets killed (without notifying engine)
@@ -68,5 +68,5 @@ class ClientServer(BaseServer):
                     self.connections[command.client_id].shutdown_killed()
 
             else:
-                self.broadcast(command.to_json_broadcast())
+                self.broadcast(command.to_json_broadcast(), None, MSG_TYPE.COMMAND)
 

@@ -21,6 +21,11 @@ class USERS:
 class GLOBAL :
     MAX_LOG_LENGTH = -1
 
+class MSG_TYPE:
+    COMMAND = 'cmd'
+    INIT = 'init'
+    BCAST = 'bc'
+    HBEAT = 'hb'
 
 class bcolors:
     HEADER = '\033[95m'
