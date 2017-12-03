@@ -5,6 +5,7 @@ from common.constants import TRANSPORT, USERS, DIRECTIONS, init_logger, MSG_TYPE
 from common.command import MoveCommand, HealCommand, AttackCommand
 from common.visualizer import Visualizer
 import threading, random, time
+import json
 
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
@@ -12,13 +13,13 @@ gameLogger = logging.getLogger("game." + __name__.split(".")[-1])
 
 
 class ClientApp():
-    def __init__(self, server_port):
+    def __init__(self, servers):
         self.game = Game()
-        self.transport_layer = ClientTransport(self.game, server_port, TRANSPORT.host)
+        self.transport_layer = ClientTransport(self.game, servers)
 
         id, map = self.transport_layer.setup_client()
         self.id = id
-        # replace json objects with user object (oh I miss you JS :( )
+        # replace json objects with user object
         self.game.from_serialized_map(map)
         logger.info("Setup data -> id: {0}".format(id))
 
@@ -153,19 +154,26 @@ if __name__ == "__main__":
     """
     Arguments to the command line: 
     --vis to enable/disable the visualizer
-    --port to choose the server port
     --log-prefix to choose the file name of the log
+    --config to pass list of possibly available game servers
     """
     parser = argparse.ArgumentParser(description="DAS Client app")
 
     parser.add_argument("--vis", action="store_true")
-    parser.add_argument("--port", dest="port", default=TRANSPORT.port)
     parser.add_argument("--log-prefix", dest="prefix", default=time.time())
+    parser.add_argument("--config", nargs="?", dest="config", required=True)
 
     args = parser.parse_args()
 
+    # get available servers
+    config = json.load((open(args.config)))
+    servers = []
+    for server in config['servers']:
+        servers.append((server.split(':')[0], int(server.split(':')[1])))
+
+
     init_logger("log/client_{}.log".format(args.prefix))
-    client = ClientApp(int(args.port))
+    client = ClientApp(servers)
 
     client.run(.5)
 

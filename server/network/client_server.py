@@ -3,6 +3,7 @@ from .client_connection import ClientConnection
 from common.command import NewPlayerCommand, PlayerLeaveCommand
 from .base_server import BaseServer
 from common.constants import GLOBAL, MSG_TYPE
+from .udp_server import UDPServer
 
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
@@ -25,6 +26,9 @@ class ClientServer(BaseServer):
 
         # This is a queue that the p2p_server will read from
         self.broadcast_queue = queue.Queue()
+
+        # start udp server to let clients ping server
+        self.udp_server = UDPServer(port, host)
 
     def on_connection(self, connection, address):
         # create socket connection to client and remember relationship between id -> socket

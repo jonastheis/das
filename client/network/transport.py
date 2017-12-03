@@ -1,5 +1,5 @@
 import socket, threading, select, json
-from common.network_util import read_message, pack, TCPConnectionError
+from common.network_util import read_message, pack, TCPConnectionError, send_udp_message, read_udp_message
 from common.constants import *
 from common.command import Command
 
@@ -8,13 +8,12 @@ logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 
 class ClientTransport:
-    def __init__(self, game, port=TRANSPORT.port, host=TRANSPORT.host):
+    def __init__(self, game, servers):
         self.game = game
         self.id = None
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((host, port))
+        self.servers = servers
 
-        logger.info("Connection established to port Server@{}:{}".format(host, port))
+        self.sock = None
 
     def check_recv(self):
         while self.game.up:
@@ -51,8 +50,21 @@ class ClientTransport:
 
     def setup_client(self):
         """
-        This BLOCKING function will be called in the creation of each client. It will synchronously wait for the server
-        to sent the game map and clientId
+        This BLOCKING function will be called in the creation of each client. It will synchronously wait
+        and pick the closest server and then retrieve the initial game state.
+        :return: map and id
+        """
+        host, port = self.get_closest_server()
+
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((host, port))
+        logger.info("Connection established to port Server@{}:{}".format(host, port))
+
+        return self.get_initial_map()
+
+    def get_initial_map(self):
+        """
+        Waits (blocking) for the server to sent the game map and clientId.
         :return: map and id
         """
         data_id = read_message(self.sock)
@@ -85,10 +97,29 @@ class ClientTransport:
         except Exception as e:
             logger.error("Error while sending data " + str(e))
 
-
     def shutdown(self):
         self.game.up = False
         self.sock.close()
 
+    def get_closest_server(self):
+        """
+        Finds the closest server out of self.servers by pinging them.
+        :return: address (host, port) of the fastest/closest server
+        """
+        logger.info("Finding closest server to connect to.")
 
+        udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+        # wait until first successful response is received -> fastest server
+        while True:
+            # send ping message to all servers
+            for server in self.servers:
+                send_udp_message(udp_sock, server, MSG_TYPE.PING)
+
+            # timeout: send message again if no positive response
+            read_sockets, write_sockets, error_sockets = select.select([udp_sock], [], [], 2)
+            for sock in read_sockets:
+                data, address = read_udp_message(sock)
+                if data['type'] == MSG_TYPE.PING:
+                    udp_sock.close()
+                    return address

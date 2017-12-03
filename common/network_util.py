@@ -1,4 +1,5 @@
 import struct
+import json
 
 SIZE_BYTES = 2
 STRUCT_IDENTIFIER = ">H"  # big-endian unsigned short (2 bytes)
@@ -65,6 +66,33 @@ def read_bytes_from_socket(socket, size):
             recv_size = size - total_len
 
     return b"".join(total_data)
+
+
+def send_udp_message(socket, address, type, data=None):
+    """
+    Sens a UDP message via the socket to the given address with type and data set in JSON.
+    :param socket: the socket to send the message
+    :param address: the address to send the message to
+    :param type: the message type
+    :param data: the message data
+    :return:
+    """
+    if data:
+        data = json.dumps({"type": type, "payload": data})
+    else:
+        data = json.dumps({"type": type})
+    socket.sendto(data.encode('utf-8'), address)
+
+
+def read_udp_message(socket):
+    """
+    Reads a UDP message from the socket and unpacks it.
+    :param socket: the socket to receive from
+    :return: json decoded message and address (host, port) as a tuple
+    """
+    data, address = socket.recvfrom(4096)
+    data = data.decode('utf-8')
+    return json.loads(data), address
 
 
 class TCPConnectionError(Exception):
