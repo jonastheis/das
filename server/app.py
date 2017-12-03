@@ -42,7 +42,7 @@ if __name__ == '__main__':
         config = json.load((open(args.config)))
         peers = config['peers']
 
-    client_server = ClientServer(request_queue, response_queue, int(args.port), '')
+    client_server = ClientServer(request_queue, response_queue, meta_request_queue, meta_response_queue, int(args.port), '')
     client_server.listen()
 
     p2p_server = P2PComponent(

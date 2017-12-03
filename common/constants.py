@@ -24,6 +24,7 @@ class GLOBAL :
 class MSG_TYPE:
     COMMAND = 'cmd'
     INIT = 'init'
+    EXIT = 'exit'
     BCAST = 'bc'
     HBEAT = 'hb'
 

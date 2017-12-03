@@ -25,21 +25,24 @@ class ClientTransport:
                     data = read_message(sock)
                 except TCPConnectionError as e:
                     logger.error(str(e))
-                    self.shutdown()
-                    return
+                    self.reconnect()
+                    continue
 
                 if not data:
-                    logger.error('\nDisconnected from server')
-                    self.shutdown()
-                    return
+                    logger.error('Disconnected from server. Try to reconnect')
+                    self.reconnect()
+                    continue
                 else:
-                    # TODO: double check if that's the correct behaviour
                     # execute all commands from server
                     json_data = json.loads(data)
                     if json_data['type'] == MSG_TYPE.COMMAND:
                         logger.debug("received message {}".format(data[:GLOBAL.MAX_LOG_LENGTH]))
                         command_obj = Command.from_json(json_data['payload'])
                         command_obj.apply(self.game)
+                    elif json_data['type'] == MSG_TYPE.EXIT:
+                        logger.info('Died, disconnect from server')
+                        self.shutdown()
+                        return
                     else:
                         logger.warning("Unknown message type received")
 
@@ -48,7 +51,16 @@ class ClientTransport:
         transport_thread.daemon = True
         transport_thread.start()
 
-    def setup_client(self):
+    def reconnect(self):
+        self.sock.close()
+
+        # start setup process again
+        id, map = self.setup_client(reconnect=True)
+        # restore map from server
+        self.game.from_serialized_map(map)
+        logger.info("Reconnected client ({0}) and restored game state from server".format(self.id))
+
+    def setup_client(self, reconnect=False):
         """
         This BLOCKING function will be called in the creation of each client. It will synchronously wait
         and pick the closest server and then retrieve the initial game state.
@@ -58,29 +70,34 @@ class ClientTransport:
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
-        logger.info("Connection established to port Server@{}:{}".format(host, port))
+        logger.info("Connection established to Server@{}:{}".format(host, port))
 
+        if reconnect:
+            return self.get_initial_map(self.id)
         return self.get_initial_map()
 
-    def get_initial_map(self):
+    def get_initial_map(self, id=''):
         """
         Waits (blocking) for the server to sent the game map and clientId.
+        :param id: if id is provided server interprets connection as reconnecting player
         :return: map and id
         """
-        data_id = read_message(self.sock)
-        json_id = json.loads(data_id)
-        if json_id['type'] == MSG_TYPE.INIT:
-            id = json_id['payload']
-        else:
-            raise BaseException("Failure in initializing game with the server")
+        # request initial map from server
+        self.send_data(id, MSG_TYPE.INIT)
 
-        # wait until i receive my own join message. This is needed to get the initial state
-        while True:
-            data_join = read_message(self.sock)
-            json_join = json.loads(data_join)
-            command_join = json.loads(json_join['payload'])
-            if command_join["type"] == "NewPlayerCommand" and command_join['client_id'] == id:
-                return id, command_join['initial_state']
+        # the first message the server will send is the init message, so doing this is fine
+        data = read_message(self.sock)
+        data_json = json.loads(data)
+        if data_json['type'] == MSG_TYPE.INIT:
+            logger.error(data_json)
+            id = data_json['id']
+            initial_map = data_json['initial_map']
+            return id, initial_map
+        else:
+            logger.error('Error while setting things up. Try reconnecting...')
+            self.reconnect()
+            return
+
 
     def send_data(self, data, type=None):
         """
@@ -110,6 +127,7 @@ class ClientTransport:
 
         udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+        count = 1
         # wait until first successful response is received -> fastest server
         while True:
             # send ping message to all servers
@@ -123,3 +141,10 @@ class ClientTransport:
                 if data['type'] == MSG_TYPE.PING:
                     udp_sock.close()
                     return address
+
+            # terminate client after 5 unsuccessful tries
+            if count > 5:
+                logger.error('Could not connect to any server. Terminate.')
+                self.game.up = False
+                return
+            count += 1
