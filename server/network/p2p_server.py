@@ -4,7 +4,8 @@ from .p2p_connection import P2PConnection
 import socket, threading
 import queue
 import logging
-from common.constants import MSG_TYPE
+from common.constants import MSG_TYPE, HEARTBEAT
+
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 
@@ -96,6 +97,7 @@ class P2PComponent(BaseServer):
                 }))
             except BaseException as e:
                 logger.warning("Peer {} -> failed to send heartbeat".format(connection))
+                self.connections[connection].heartbeat -= HEARTBEAT.INC
 
         self.update_heartbeat_stat()
 
@@ -108,7 +110,7 @@ class P2PComponent(BaseServer):
                 if self.connections[peer_id].heartbeat < 0 :
                     self.remove_connection(peer_id)
                 else:
-                    self.connections[peer_id].heartbeat -= 1000
+                    self.connections[peer_id].heartbeat -= HEARTBEAT.INC
 
 
     def connect_to_peer(self, host, port):

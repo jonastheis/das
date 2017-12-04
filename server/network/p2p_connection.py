@@ -1,7 +1,7 @@
 import json
 from .base_connection import BaseConnection
 from common import command
-from common.constants import MSG_TYPE
+from common.constants import MSG_TYPE, HEARTBEAT
 
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
@@ -12,7 +12,7 @@ class P2PConnection(BaseConnection):
     def __init__(self, socket, address, id, server):
         BaseConnection.__init__(self, socket, address, id)
         self.server = server
-        self.heartbeat = 10000
+        self.heartbeat = HEARTBEAT.INIT
 
     def __str__(self):
         return BaseConnection.__str__(self) + " [hb:{}]".format(self.heartbeat)
@@ -22,7 +22,7 @@ class P2PConnection(BaseConnection):
         json_data = json.loads(data)
 
         if json_data['type'] == MSG_TYPE.HBEAT:
-            self.heartbeat += 1000
+            self.heartbeat += HEARTBEAT.INC
 
         elif json_data['type'] == MSG_TYPE.BCAST:
             # Put the message in the queue
