@@ -111,8 +111,9 @@ def triggerJoinLeaveEvents(listOfEventsToTrigger, lock, clientApp, delayBetweenE
     for single_thread in listOfThreads:
         single_thread.join()
 
-def addServer(serverApp, configFile, serverName, target_port):
+def addServer(event_details, serverApp, configFile, serverName, target_port):
 
+    time.sleep(event_details.timeStamp)
     # Starting the server
     # command line to start the base server: python ../server/app.py --log-prefix player_id
     proc = subprocess.Popen([sys.executable, serverApp, '--config', configFile, '--log-prefix', serverName, '--port', str(target_port)])
@@ -137,18 +138,34 @@ def triggerServerEvents(serverApp, configFile, base_port, port_offset, numSlaveS
             if event.eventType == emulation.GTAEventsReader.SERVER_ADD:
 
                 if event.playerId == MASTER_SERVER:
-                    addServer(serverApp, configFile, MASTER_NODE_SERVER_NAME, base_port)
+                    thread = Thread(target=addServer, args=(event, serverApp,configFile,MASTER_NODE_SERVER_NAME, base_port))
                 else:
                     slave_port = base_port + port_offset * int(event.playerId)
-                    addServer(serverApp, configFile, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip(), str(slave_port))
+                    thread = Thread(target=addServer, args=(event, serverApp, configFile, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip(), str(slave_port)))
+                thread.start()
             else:
                 if event.eventType == emulation.GTAEventsReader.SERVER_REMOVE:
                     if event.playerId == MASTER_SERVER:
-                        killServer(MASTER_NODE_SERVER_NAME)
+                        thread = Thread(target=killServer, args=(event, MASTER_NODE_SERVER_NAME,))
                     else:
-                        killServer(SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip())
-                else:
-                    logger.error("Server Event for" + event.playerId + " not identified")
+                        thread = Thread(target=killServer, args=(event, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip(),))
+                    thread.start()
+
+    # if event.eventType == emulation.GTAEventsReader.SERVER_ADD:
+            #
+            #     if event.playerId == MASTER_SERVER:
+            #         addServer(event, serverApp, configFile, MASTER_NODE_SERVER_NAME, base_port)
+            #     else:
+            #         slave_port = base_port + port_offset * int(event.playerId)
+            #         addServer(event, serverApp, configFile, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip(), str(slave_port))
+            # else:
+            #     if event.eventType == emulation.GTAEventsReader.SERVER_REMOVE:
+            #         if event.playerId == MASTER_SERVER:
+            #             killServer(event, MASTER_NODE_SERVER_NAME)
+            #         else:
+            #             killServer(event, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip())
+            #     else:
+            #         logger.error("Server Event for" + event.playerId + " not identified")
     else:
         if(numSlaveServers is not None):
             # Starting the base server
@@ -167,7 +184,7 @@ def triggerServerEvents(serverApp, configFile, base_port, port_offset, numSlaveS
             i = 1
             while i <= numSlaveServers:
                 slave_port = base_port + port_offset*i
-                proc = subprocess.Popen([sys.executable, serverApp, '--config', configFile, '--log-prefix', 'slave_' + str(i), '--port', str(slave_port)])
+                proc = subprocess.Popen([sys.executable, serverApp, '--config', configFile, '--log-prefix', 'slave_' + str(i), '--config', str(slave_port)])
 
                 if proc.pid > 0:
                     logger.info("Slave Server " + str(i) + " successfully added. Process Id:" + str(proc.pid))
@@ -189,7 +206,9 @@ def triggerServerEvents(serverApp, configFile, base_port, port_offset, numSlaveS
 # input: serverName
 # Output: none.
 
-def killServer(serverName):
+def killServer(event_details, serverName):
+
+    time.sleep(event_details.timeStamp)
 
     if serverProcesses[serverName] is not None:
         if not runningWindows:
