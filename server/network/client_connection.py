@@ -3,7 +3,7 @@ import time
 from .base_connection import BaseConnection
 from common import command
 from common.network_util import pack
-from common.constants import MSG_TYPE, GLOBAL
+from common.constants import MSG_TYPE, GLOBAL, TRANSPORT
 
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])

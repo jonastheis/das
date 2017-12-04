@@ -2,7 +2,7 @@ import hashlib, time, queue, threading
 from .client_connection import ClientConnection
 from common.command import NewPlayerCommand, PlayerLeaveCommand
 from .base_server import BaseServer
-from common.constants import GLOBAL, MSG_TYPE
+from common.constants import GLOBAL, MSG_TYPE, TRANSPORT
 from .udp_server import UDPServer
 
 import logging
@@ -11,7 +11,7 @@ logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 
 class ClientServer(BaseServer):
-    def __init__(self, request_queue, response_queue, meta_request_queue, meta_response_queue, port, host="127.0.0.1"):
+    def __init__(self, request_queue, response_queue, meta_request_queue, meta_response_queue, port, host=""):
         """
         Handler for all the incoming TCP connections of the clients.
         Listens for incoming connections and spawns a new Client (therefore also a thread) per connection.
@@ -98,3 +98,4 @@ class ClientServer(BaseServer):
             del self.pending_connections[old_id]
 
         self.connections[new_id] = connection
+        self.udp_server.delay += TRANSPORT.UDP_DELAY_PER_PLAYER

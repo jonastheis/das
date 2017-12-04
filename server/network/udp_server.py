@@ -1,6 +1,9 @@
 import socket
 import threading
 import select
+
+import time
+
 from common.network_util import send_udp_message, read_udp_message
 from common.constants import *
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
@@ -12,12 +15,13 @@ class UDPServer(object):
     Runs in separate thread and listens for input of the socket.
     """
 
-    def __init__(self, port, host="127.0.0.1"):
+    def __init__(self, port, host=""):
         self.host = host
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind((host, port))
         self.up = True
+        self.delay = 0
 
         self.inputs = [self.socket]
 
@@ -48,6 +52,7 @@ class UDPServer(object):
         :param address: the udp address from where the received message was sent
         """
         if data['type'] == MSG_TYPE.PING:
+            time.sleep(self.delay)
             send_udp_message(self.socket, address, MSG_TYPE.PING)
         else:
             logger.warning("Received an unknown message type [{}]".format(data))
