@@ -5,12 +5,20 @@ import zipfile
 import os
 import time
 from decimal import localcontext, Decimal
+from common.constants import init_logger
+import logging
+
 
 # This auxiliary class has methods to support the manipulation of GTA (Game Track Activity) files.
 PLAYER_QUITING = " PLAYER_QUITING"
 PLAYER_LOGOUT = " PLAYER_LOGOUT"
 PLAYER_LOGIN = " PLAYER_LOGIN"
+SERVER_ADD = " SERVER_CONNECT"
+SERVER_REMOVE = " SERVER_DISCONNECT"
+MODE_PLAYERS = "LOAD_PLAYER_EVENTS"
+MODE_SERVERS = "LOAD_SERVERS"
 
+logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 class GTAEventsReader:
 
@@ -20,7 +28,7 @@ class GTAEventsReader:
 # This method identifies the Login/Logout events from the GTA file and returns a list of Event objects.
 # Input: a GTA file with a list of events
 # Output: a list of Event objects
-def IdentifyLoginLogoutEvents(onlyEvents):
+def IdentifyLoginLogoutEvents(onlyEvents, *eventsOfInterest):
 
     listOfLoginLogoutEvents = []
     timeOfFirstEvent = 0
@@ -36,7 +44,8 @@ def IdentifyLoginLogoutEvents(onlyEvents):
         if timeOfFirstEvent > eventTime or timeOfFirstEvent == 0:
             timeOfFirstEvent = eventTime
 
-        if (PLAYER_LOGIN == information[3]) or (PLAYER_LOGOUT == information[3]) or (PLAYER_QUITING == information[3]):
+        #if (PLAYER_LOGIN == information[3]) or (PLAYER_LOGOUT == information[3]) or (PLAYER_QUITING == information[3]):
+        if (information[3] is not None and information[3] in eventsOfInterest):
 
             playerId = information[1]
 
@@ -48,9 +57,11 @@ def IdentifyLoginLogoutEvents(onlyEvents):
             detectedEvent = common.event.Event(eventType, playerId, eventTime)
 
             listOfLoginLogoutEvents.append(detectedEvent)
+        else:
+            if (information[0] is not None):
+                logger.error("Error while reading the event on line:" + information[0])
 
-    print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) +
-          " - Parsing process is done.")
+    logger.debug("Parsing process is done.")
 
     return listOfLoginLogoutEvents
 
@@ -58,25 +69,24 @@ def IdentifyLoginLogoutEvents(onlyEvents):
 # Assuming that the lines in the file will follow the format present in
 # WoWSession_Node_Player_Fixed_Dynamic which is: RowID, PlayerID, Timestamp, Event, Category.
 # Input: file location
+# Mode: players or servers
 # Output: a list of Event objects.
 
-def LoadEventsFromFile(fileLocation):
+def LoadEventsFromFile(fileLocation, mode):
 
-    print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) +
-          " - Extracting the zip file containing the events: " + fileLocation)
+    logger.info("Extracting the zip file containing the events: " + fileLocation)
 
     initialZipFile = zipfile.ZipFile(fileLocation,'r')
     initialZipFile.extractall()
 
-    print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) +
-          " - File extracted successfully.")
+    logger.info("File extracted successfully.")
 
     # Removing the extension of the zip file: '.zip' assuming that the input file has the same name as the zip file.
     extractedFileLocation = fileLocation[:-4]
 
     eventsFile = open(extractedFileLocation, 'r')
 
-    listOfLoginLogoutEvents = []
+    listOfEvents = []
     eventsExists = False
 
     nonContentLines = 0
@@ -102,28 +112,33 @@ def LoadEventsFromFile(fileLocation):
         # Uses as input for the event extraction only the part of the input file with events (without headers).
         onlyEvents = itertools.islice(eventsFile, nonContentLines, None)
 
-        # Now the Login/Logout events will be extracted.
-        listOfLoginLogoutEvents = IdentifyLoginLogoutEvents(onlyEvents)
+        if (mode == MODE_PLAYERS):
+            # Now the Login/Logout events will be extracted.
+            listOfEvents = IdentifyLoginLogoutEvents(onlyEvents, PLAYER_LOGOUT, PLAYER_LOGIN, PLAYER_QUITING)
+        else:
+            if (mode == MODE_SERVERS):
+                # Now the addition or removal of server events will be extracted.
+                listOfEvents = IdentifyLoginLogoutEvents(onlyEvents, SERVER_ADD, SERVER_REMOVE)
+            else:
+                logger.error("Mode used to identify events is not known.")
 
-    print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) +
-          " - Closing the extracted file: " + extractedFileLocation)
+
+    logger.debug("Closing the extracted file: " + extractedFileLocation)
 
     # Closing the file extracted file
     eventsFile.close()
 
     #Removing the extracted file
-    print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) +
-          " - Removing the extracted file: " + extractedFileLocation)
+    logger.info("Removing the extracted file: " + extractedFileLocation)
 
     os.remove(extractedFileLocation)
 
-    print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) +
-          " - Closing the zip file: " + fileLocation)
+    logger.info("Closing the zip file: " + fileLocation)
 
     # Closing the file zip file
     initialZipFile.close()
 
-    return listOfLoginLogoutEvents
+    return listOfEvents
 
 # This function normalizes the events timestamps based on a given/target simulation total time.
 # Complexity O(n) - iterates twice over the list of events
