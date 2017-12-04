@@ -176,7 +176,7 @@ class P2PComponent(BaseServer):
         Gathers (blocking) the initial game state from all other servers.
         :return: initial game state
         """
-        for connection in self.connections:
+        for connection in list(self.connections):
             try:
                 self.connections[connection].send(json.dumps({'type': MSG_TYPE.INIT_REQ}))
             except BaseException as e:
