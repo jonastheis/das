@@ -5,8 +5,8 @@ from common.user import User
 
 class Game:
     def __init__(self):
-        self.row = 5
-        self.col = 5
+        self.row = 25
+        self.col = 25
 
         self.map = [[0 for j in range(self.col)] for i in range(self.row)]
 

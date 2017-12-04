@@ -48,7 +48,7 @@ if __name__ == '__main__':
     p2p_server = P2PComponent(
         request_queue, response_queue, meta_request_queue, meta_response_queue,
         client_server,
-        int(args.port) + 10, '127.0.0.1',
+        int(args.port) + 10, '',
         peers)
 
     if not initial_users:
