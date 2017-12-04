@@ -9,7 +9,7 @@ logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 
 class P2PComponent(BaseServer):
-    def __init__(self, request_queue, response_queue, meta_request_queue, meta_response_queue, client_server, port, host="127.0.0.1", peers=[]):
+    def __init__(self, request_queue, response_queue, meta_request_queue, meta_response_queue, client_server, port, host="", peers=[]):
         """
         :param request_queue:
         :param response_queue:
@@ -90,7 +90,10 @@ class P2PComponent(BaseServer):
         #logger.debug("Sending heartbeat to {} peers".format(len(self.connections)))
         for connection in self.connections:
             try:
-                self.connections[connection].send(json.dumps({"type": MSG_TYPE.HBEAT}))
+                self.connections[connection].send(json.dumps({
+                    "type": MSG_TYPE.HBEAT,
+                    "payload": {"num_connections": len(self.client_server.connections)}
+                }))
             except BaseException as e:
                 logger.warning("Peer {} -> failed to send heartbeat".format(connection))
 
