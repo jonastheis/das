@@ -35,9 +35,7 @@ class P2PComponent(BaseServer):
             # exclude self
             if peer == "{}:{}".format(host, port):
                 continue
-            self.connect_to_peer(peer.split(":")[0], peer.split(":")[1])
-
-        logger.info("Current Peers {}".format(self.connections))
+            threading.Thread(target=self.connect_to_peer, args=[peer.split(":")[0], peer.split(":")[1]]).start()
 
         self.listen()
         self.set_interval(self.heart_beat, 2)
