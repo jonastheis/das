@@ -99,8 +99,7 @@ class ClientApp():
             if value and move_direction:
                 return MoveCommand(self.id, value, move_direction)
 
-        gameLogger.warning("Failed to find a simulation for player.")
-        gameLogger.error("Random debug walk...")
+        logger.warning("Failed to find a simulation for player. Random walk it is...")
         return MoveCommand(self.id, random.choice([1, -1]), random.choice([DIRECTIONS.H, DIRECTIONS.V]))
 
     def simulate_dragon(self):
@@ -162,6 +161,7 @@ if __name__ == "__main__":
     parser.add_argument("--vis", action="store_true")
     parser.add_argument("--log-prefix", dest="prefix", default=time.time())
     parser.add_argument("--config", nargs="?", dest="config", required=True)
+    parser.add_argument("--game-log", dest="gameLog", action="store_false", default=True)
 
     args = parser.parse_args()
 
@@ -172,7 +172,7 @@ if __name__ == "__main__":
         servers.append((server.split(':')[0], int(server.split(':')[1])))
 
 
-    init_logger("log/client_{}.log".format(args.prefix))
+    init_logger("log/client_{}.log".format(args.prefix), args.gameLog)
     client = ClientApp(servers)
 
     client.run(.5)

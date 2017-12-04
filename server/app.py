@@ -22,11 +22,10 @@ if __name__ == '__main__':
     parser.add_argument("--port", nargs="?", dest="port" , default=TRANSPORT.port)
     parser.add_argument("--vis", action="store_true")
     parser.add_argument("--log-prefix", dest="prefix", default="DEFAULT")
-    parser.add_argument("--peer")
+    parser.add_argument("--game-log", dest="gameLog", action="store_false", default=True)
 
     args = parser.parse_args()
-
-    init_logger("log/server_{}.log".format(args.prefix))
+    init_logger("log/server_{}.log".format(args.prefix), args.gameLog)
 
     request_queue = multiprocessing.Queue()
     response_queue = multiprocessing.Queue()

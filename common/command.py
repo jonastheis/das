@@ -122,6 +122,7 @@ class NewPlayerCommand(Command):
                 setattr(new_user, key, val)
             game.add_user(new_user, new_user.pos[0], new_user.pos[1])
 
+        gLogger.info("Command {} successfully executed".format(self.__str__()))
         return True
 
     def to_json_broadcast(self):
@@ -138,6 +139,8 @@ class PlayerLeaveCommand(Command):
     def apply(self, game):
         Command.apply(self, game)
         game.remove_user_by_id(self.client_id)
+
+        gLogger.info("Command {} successfully executed".format(self.__str__()))
         return True
 
 
@@ -152,12 +155,12 @@ class MoveCommand(Command):
         _user = self.get_user_by_id(game, self.client_id)
 
         if _user == 0:
-            gLogger.error("No Player Found")
+            gLogger.error("Command {} failed. No Player Found".format(self.__str__()))
             return False
 
         # Dragons cannot move
         if _user.type == USERS.DRAGON:
-            gLogger.error("Dragons cannot move")
+            gLogger.error("Command {} failed. Dragons cannot move".format(self.__str__()))
             return False
 
         _row, _col = _user.pos
@@ -167,7 +170,7 @@ class MoveCommand(Command):
 
         # make sure only 1 step
         if abs(self.value) != 1:
-            gLogger.error("Invalid step count")
+            gLogger.error("Command {} failed. Invalid step count".format(self.__str__()))
             return False
 
         if self.direction == DIRECTIONS.V:
@@ -177,12 +180,12 @@ class MoveCommand(Command):
 
         # Check if target is in boundaries of the map
         if target_row >= game.row or target_col >= game.col or target_row < 0 or target_col < 0:
-            gLogger.error("Position [{}, {}] out of scope of game".format(target_row, target_col))
+            gLogger.error("Command {} failed. Position [{}, {}] out of scope of game".format(self.__str__(), target_row, target_col))
             return False
 
         # Check if target pos is full
         if game.map[target_row][target_col] != 0:
-            gLogger.error("Position [{}, {}] already full".format(target_row, target_col))
+            gLogger.error("Command {} failed. Position [{}, {}] already full".format(self.__str__(), target_row, target_col))
             return False
 
         # update game map
@@ -191,6 +194,7 @@ class MoveCommand(Command):
         # update user position
         _user.pos = [target_row, target_col]
 
+        gLogger.info("Command {} successfully executed".format(self.__str__()))
         return True
 
     def __str__(self):
@@ -209,11 +213,11 @@ class AttackCommand(Command):
         target = self.get_user_by_id(game, self.target_id)
 
         if attacker == 0:
-            gLogger.error("Attacker not found")
+            gLogger.error("Command {} failed. Attacker not found".format(self.__str__()))
             return False
 
         if target == 0:
-            gLogger.error("Target not found")
+            gLogger.error("Command {} failed. Target not found".format(self.__str__()))
             return False
 
         attacker_row, attacker_col = attacker.pos
@@ -222,7 +226,7 @@ class AttackCommand(Command):
         distance = self.get_distance([attacker_row, attacker_col], [target_row, target_col])
 
         if distance > 2:
-            gLogger.error("Attack distance bigger than 2")
+            gLogger.error("Command {} failed. Attack distance bigger than 2".format(self.__str__()))
             return False
 
         target.hp -= attacker.ap
@@ -235,8 +239,8 @@ class AttackCommand(Command):
             if game.is_server:
                 response_queue.put(PlayerLeaveCommand(self.client_id, True, timestamp=time.time()))
 
-            # If I am being killed during the game
 
+        gLogger.info("Command {} successfully executed".format(self.__str__()))
         return True
 
 
@@ -251,21 +255,21 @@ class HealCommand(Command):
         target = self.get_user_by_id(game, self.target_id)
 
         if healer == 0:
-            gLogger.error("Healer not found")
+            gLogger.error("Command {} failed. Healer not found".format(self.__str__()))
             return False
         if healer.type != USERS.PLAYER:
-            gLogger.error("Dragons can't heal")
+            gLogger.error("Commnd {} failed. Dragons can't heal".format(self.__str__()))
             return False
 
         if target == 0:
-            gLogger.error("Target not found")
+            gLogger.error("Command {} failed. Target not found".format(self.__str__()))
             return False
         if target.type != USERS.PLAYER:
-            gLogger.error("Can't heal a dragon")
+            gLogger.error("Command {} failed. Can't heal a dragon".format(self.__str__()))
             return False
 
         if self.client_id == self.target_id:
-            gLogger.error("Can't heal yourself")
+            gLogger.error("Command {} failed. Can't heal yourself".format(self.__str__()))
             return False
 
         healer_row, healer_col = healer.pos
@@ -274,8 +278,8 @@ class HealCommand(Command):
         distance = self.get_distance([healer_row, healer_col], [target_row, target_col])
 
         if distance > 5:
-            gLogger.error("Heal distance bigger than 5")
-            return
+            gLogger.error("Command {} failed. Heal distance bigger than 5".format(self.__str__()))
+            return False
 
         heal_amount = healer.ap
         target.hp += heal_amount
@@ -283,4 +287,5 @@ class HealCommand(Command):
         if target.hp > target.MAX_HP:
             target.hp = target.MAX_HP
 
+        gLogger.info("Command {} successfully executed".format(self.__str__()))
         return True

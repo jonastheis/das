@@ -1,6 +1,6 @@
-from common.constants import *
-import copy
+import copy, logging
 from common.user import User
+gLogger = logging.getLogger("game." + __name__.split(".")[-1])
 
 
 class Game:
@@ -40,14 +40,18 @@ class Game:
             self.map[r][c] = p
             p.pos = [r, c]
             self.users.append(p)
+            gLogger.info("New user added [{}] to the map at [{},{}]".format(p, r, c))
             return True
         else:
+            gLogger.error("Failed to add user. Position full at [{},{}]".format(r, c))
             return False
 
     def remove_user(self, r, c):
         if self.map[r][c] == 0:
+            gLogger.error("Failed to remove user. cell empty [{},{}]".format(r, c))
             return False
         else:
+            gLogger.info("Removed user [{}] from [{},{}]".format(self.map[r][c], r, c))
             self.users.remove(self.map[r][c])
             self.map[r][c] = 0
             return True

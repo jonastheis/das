@@ -5,6 +5,7 @@ from common.command import Command
 
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
+gLogger = logging.getLogger("game." + __name__.split(".")[-1])
 
 
 class ClientTransport:
@@ -35,13 +36,12 @@ class ClientTransport:
                 else:
                     # execute all commands from server
                     json_data = json.loads(data)
-                    logger.debug("Received message {}".format(json_data))
+                    logger.debug("received message {}".format(data[:GLOBAL.MAX_LOG_LENGTH]))
                     if json_data['type'] == MSG_TYPE.COMMAND:
-                        logger.debug("received message {}".format(data[:GLOBAL.MAX_LOG_LENGTH]))
                         command_obj = Command.from_json(json_data['payload'])
                         command_obj.apply(self.game)
                     elif json_data['type'] == MSG_TYPE.EXIT:
-                        logger.info('Died, disconnect from server')
+                        gLogger.error("Died, disconnect from server")
                         self.shutdown()
                         return
                     else:

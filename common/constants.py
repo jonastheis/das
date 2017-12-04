@@ -70,7 +70,7 @@ def add_coloring_to_emit_ansi(fn):
         return fn(*args)
     return new
 
-def init_logger(file):
+def init_logger(file, separate_game_log):
     # Two base logger types
     sysLogger = logging.getLogger("sys")
     gameLogger = logging.getLogger("game")
@@ -95,8 +95,19 @@ def init_logger(file):
 
     gameLogger.addHandler(fileHandler)
     gameLogger.setLevel(logging.DEBUG)
-    gameLogger.addHandler(fileHandler)
+    if separate_game_log:
+        game_file = file.split(".")[0] + "_game.log"
+        open(game_file, 'w').close()
+        gameFileHandler = logging.FileHandler(game_file)
+        gameFileHandler.setFormatter(formatter)
+        gameLogger.addHandler(gameFileHandler)
+
+        # For now and just for ease of testing, I will write to both
+        # TODO: remove this line
+        # gameLogger.addHandler(fileHandler)
+    else:
+        gameLogger.addHandler(fileHandler)
 
     sysLogger.info("System Logger initialized")
-    gameLogger.info("Game Logger initialized")
+    sysLogger.info("Game Logger initialized")
 
