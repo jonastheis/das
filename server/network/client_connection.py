@@ -19,6 +19,9 @@ class ClientConnection(BaseConnection):
         self.server = server
         BaseConnection.__init__(self, connection, address, id)
 
+    def __str__(self):
+        return "Client@" + BaseConnection.__str__(self).split("@")[1]
+
     def on_message(self, data):
         json_data = json.loads(data)
 
@@ -66,7 +69,7 @@ class ClientConnection(BaseConnection):
         logger.debug("{} :: sending init message [{}]".format(self.__str__(), data[:GLOBAL.MAX_LOG_LENGTH]))
         self.socket.sendall(pack(data))
 
-    def shutdown(self):
+    def shutdown(self, b_cast=True):
         """
         Shuts down the socket, makes sure that the thread can die and notifies the server about the ending connection.
         """
@@ -74,7 +77,8 @@ class ClientConnection(BaseConnection):
         self.server.remove_connection(self.id)
 
         # need to notify engine about the connection loss with the client -> so he can be removed from the field
-        self.server.request_command(command.PlayerLeaveCommand(self.id, is_killed=False, timestamp=time.time()))
+        if b_cast:
+            self.server.request_command(command.PlayerLeaveCommand(self.id, is_killed=False, timestamp=time.time()))
 
     def shutdown_killed(self):
         """

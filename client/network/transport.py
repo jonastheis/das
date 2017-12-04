@@ -35,6 +35,7 @@ class ClientTransport:
                 else:
                     # execute all commands from server
                     json_data = json.loads(data)
+                    logger.debug("Received message {}".format(json_data))
                     if json_data['type'] == MSG_TYPE.COMMAND:
                         logger.debug("received message {}".format(data[:GLOBAL.MAX_LOG_LENGTH]))
                         command_obj = Command.from_json(json_data['payload'])
@@ -89,7 +90,6 @@ class ClientTransport:
         data = read_message(self.sock)
         data_json = json.loads(data)
         if data_json['type'] == MSG_TYPE.INIT:
-            logger.error(data_json)
             id = data_json['id']
             initial_map = data_json['initial_map']
             return id, initial_map

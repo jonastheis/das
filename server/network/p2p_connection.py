@@ -13,9 +13,10 @@ class P2PConnection(BaseConnection):
         BaseConnection.__init__(self, socket, address, id)
         self.server = server
         self.heartbeat = HEARTBEAT.INIT
+        self.peer_connections = 0
 
     def __str__(self):
-        return BaseConnection.__str__(self) + " [hb:{}]".format(self.heartbeat)
+        return "Peer@" + BaseConnection.__str__(self).split("@")[1] + " [hb:{}]".format(self.heartbeat)
 
 
     def on_message(self, data):
@@ -23,6 +24,7 @@ class P2PConnection(BaseConnection):
 
         if json_data['type'] == MSG_TYPE.HBEAT:
             self.heartbeat += HEARTBEAT.INC
+            self.peer_connections = int(json_data['payload']['num_connections'])
 
         elif json_data['type'] == MSG_TYPE.BCAST:
             # Put the message in the queue
