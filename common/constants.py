@@ -11,8 +11,9 @@ class DIRECTIONS:
     V = 'v'
 
 class TRANSPORT:
-    host = 'localhost'
+    host = '0.0.0.0'
     port = 8000
+    UDP_DELAY_PER_PLAYER = .05
 
 class USERS:
     PLAYER = 'p'
@@ -32,6 +33,10 @@ class MSG_TYPE:
     INIT_RES = 'init_res'
 
     PING = 'ping'
+
+class HEARTBEAT:
+    INIT = 30
+    INC = 10
 
 class bcolors:
     HEADER = '\033[95m'

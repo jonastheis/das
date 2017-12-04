@@ -42,13 +42,13 @@ if __name__ == '__main__':
         config = json.load((open(args.config)))
         peers = config['peers']
 
-    client_server = ClientServer(request_queue, response_queue, meta_request_queue, meta_response_queue, int(args.port), '')
+    client_server = ClientServer(request_queue, response_queue, meta_request_queue, meta_response_queue, int(args.port), TRANSPORT.host)
     client_server.listen()
 
     p2p_server = P2PComponent(
         request_queue, response_queue, meta_request_queue, meta_response_queue,
         client_server,
-        int(args.port) + 10, '127.0.0.1',
+        int(args.port) + 10, TRANSPORT.host,
         peers)
 
     if not initial_users:

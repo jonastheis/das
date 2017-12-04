@@ -1,5 +1,5 @@
 import socket, threading
-
+from common.constants import TRANSPORT
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
@@ -59,3 +59,9 @@ class BaseServer(object):
         """
         if id in self.connections:
             del self.connections[id]
+
+        # Optional
+        # Reduce udp delay
+        if hasattr(self, 'udp_server'):
+            self.udp_server.delay -= TRANSPORT.UDP_DELAY_PER_PLAYER
+            logger.debug("New UDP Delay value {}".format(self.udp_server.delay))

@@ -10,6 +10,12 @@ from decimal import Decimal
 from common.constants import init_logger
 import logging
 
+SLAVE_NODE_SERVER_NAME_PREFIX = "slave_"
+
+MASTER_NODE_SERVER_NAME = "master_node"
+
+MASTER_SERVER = " 0"
+
 SIMULATION_SERVERS_WARMUP_TIME = 3
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
@@ -33,7 +39,7 @@ def addClient(lock, event_details, clientApp, adjTimestamp):
         time.sleep(event_details.timeStamp - Decimal(adjTimestamp))
 
     # command line to start the client application: python ../client/app.py --log-prefix player_id
-    proc = subprocess.Popen([sys.executable, clientApp, '--log-prefix', event_details.playerId])
+    proc = subprocess.Popen([sys.executable, clientApp, '--log-prefix', event_details.playerId, '--config','das_config.json'])
 
     logger.debug("This is the playerId: " + event_details.playerId + " and this is the PID:" + str(proc.pid))
 
@@ -97,6 +103,7 @@ def triggerJoinLeaveEvents(listOfEventsToTrigger, lock, clientApp, delayBetweenE
                 thread.start()
                 listOfThreads.append(thread)
 
+        #Assuming that the time between events is respected also for Login/logout
         time.sleep(delayBetweenEvents)
         adjustmentTimestamp += delayBetweenEvents
 
@@ -104,48 +111,131 @@ def triggerJoinLeaveEvents(listOfEventsToTrigger, lock, clientApp, delayBetweenE
     for single_thread in listOfThreads:
         single_thread.join()
 
-def initializeServers(serverApp, configFile, base_port, port_offset, numSlaveServers):
+def addServer(event_details, serverApp, configFile, serverName, target_port):
 
-    # Starting the base server
+    time.sleep(event_details.timeStamp)
+    # Starting the server
     # command line to start the base server: python ../server/app.py --log-prefix player_id
-    proc = subprocess.Popen([sys.executable, serverApp, '--config', configFile, '--log-prefix', 'master_node', '--port', str(base_port)])
+    proc = subprocess.Popen([sys.executable, serverApp, '--config', configFile, '--log-prefix', serverName, '--port', str(target_port)])
 
     if proc.pid > 0:
-        logger.info("Base Server successfully added. Process Id: " + str(proc.pid))
-        serverProcesses.append(proc.pid)
+        logger.info("Server" + serverName + "successfully added. Process Id: " + str(proc.pid))
+        serverProcesses[serverName] = proc.pid
     else:
         logger.error("Error while loading the base server. Simulation will be aborted.")
         return
-    time.sleep(SIMULATION_SERVERS_WARMUP_TIME)
 
-    # Initializing the slave servers for simulation
-    i = 1
-    while i <= numSlaveServers:
-        proc = subprocess.Popen([sys.executable, serverApp, '--config', configFile, '--log-prefix', 'slave_' + str(i), '--port', str(base_port + port_offset)])
+    if MASTER_NODE_SERVER_NAME == serverName:
+        time.sleep(SIMULATION_SERVERS_WARMUP_TIME)
 
-        if proc.pid > 0:
-            logger.info("Slave Server " + str(i) + " successfully added. Process Id:" + str(proc.pid))
-            serverProcesses.append(proc.pid)
+def triggerServerEvents(serverApp, configFile, base_port, port_offset, numSlaveServers, listOfServerEvents):
+
+    # The list of server events precedes the parameter numSlaveServers
+    if (listOfServerEvents is not None):
+
+        for event in listOfServerEvents:
+
+            if event.eventType == emulation.GTAEventsReader.SERVER_ADD:
+
+                if event.playerId == MASTER_SERVER:
+                    thread = Thread(target=addServer, args=(event, serverApp,configFile,MASTER_NODE_SERVER_NAME, base_port))
+                else:
+                    slave_port = base_port + port_offset * int(event.playerId)
+                    thread = Thread(target=addServer, args=(event, serverApp, configFile, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip(), str(slave_port)))
+                thread.start()
+            else:
+                if event.eventType == emulation.GTAEventsReader.SERVER_REMOVE:
+                    if event.playerId == MASTER_SERVER:
+                        thread = Thread(target=killServer, args=(event, MASTER_NODE_SERVER_NAME,))
+                    else:
+                        thread = Thread(target=killServer, args=(event, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip(),))
+                    thread.start()
+
+    # if event.eventType == emulation.GTAEventsReader.SERVER_ADD:
+            #
+            #     if event.playerId == MASTER_SERVER:
+            #         addServer(event, serverApp, configFile, MASTER_NODE_SERVER_NAME, base_port)
+            #     else:
+            #         slave_port = base_port + port_offset * int(event.playerId)
+            #         addServer(event, serverApp, configFile, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip(), str(slave_port))
+            # else:
+            #     if event.eventType == emulation.GTAEventsReader.SERVER_REMOVE:
+            #         if event.playerId == MASTER_SERVER:
+            #             killServer(event, MASTER_NODE_SERVER_NAME)
+            #         else:
+            #             killServer(event, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip())
+            #     else:
+            #         logger.error("Server Event for" + event.playerId + " not identified")
+    else:
+        if(numSlaveServers is not None):
+            # Starting the base server
+            # command line to start the base server: python ../server/app.py --log-prefix player_id
+            proc = subprocess.Popen([sys.executable, serverApp, '--config', configFile, '--log-prefix', 'master_node', '--port', str(base_port)])
+
+            if proc.pid > 0:
+                logger.info("Base Server successfully added. Process Id: " + str(proc.pid))
+                serverProcesses.append(proc.pid)
+            else:
+                logger.error("Error while loading the base server. Simulation will be aborted.")
+                return
+            time.sleep(SIMULATION_SERVERS_WARMUP_TIME)
+
+            # Initializing the slave servers for simulation
+            i = 1
+            while i <= numSlaveServers:
+                slave_port = base_port + port_offset*i
+                proc = subprocess.Popen([sys.executable, serverApp, '--config', configFile, '--log-prefix', 'slave_' + str(i), '--config', str(slave_port)])
+
+                if proc.pid > 0:
+                    logger.info("Slave Server " + str(i) + " successfully added. Process Id:" + str(proc.pid))
+                    serverProcesses.append(proc.pid)
+                else:
+                    logger.error("Error while loading slave server " + str(i) + ".")
+
+                i += 1
+
+            time.sleep(SIMULATION_SERVERS_WARMUP_TIME)
         else:
-            logger.error("Error while loading slave server " + str(i) + ".")
-        i += 1
+            logger.error("The number of slave servers or a list of server events was not provided, "
+                         "so no servers will be added to the simulation.")
 
-    time.sleep(SIMULATION_SERVERS_WARMUP_TIME)
+    return
+
+# This kills the process for a given serverName used for the simulation.
+# input: isWindows: if the current execution is on Windows.
+# input: serverName
+# Output: none.
+
+def killServer(event_details, serverName):
+
+    time.sleep(event_details.timeStamp)
+
+    if serverProcesses[serverName] is not None:
+        if not runningWindows:
+            commandLine = "kill -9 " + str(serverProcesses[serverName])
+        else:
+            #Killing the process using a Windows command
+            commandLine = "taskkill /f /pid " + str(serverProcesses[serverName])
+
+        logger.info("Removing the server process:" + str(serverProcesses[serverName]))
+        # Executing the command to kill the respective process.
+        os.system(commandLine)
+        serverProcesses[serverName] = None
     return
 
 # This kills the processes used for the simulation.
 # isWindows: if the current execution is on Windows.
 # Output: none.
 
-def killServers(isWindows):
+def killServers():
 
-    with lock:
+    with serverLock:
         numberOfProcesses = len(serverProcesses)
 
     if numberOfProcesses > 0:
 
         for serverProcess in serverProcesses:
-            if not isWindows:
+            if not runningWindows:
                 commandLine = "kill -9 " + str(serverProcess)
             else:
                 #Killing the process using a Windows command
@@ -168,9 +258,11 @@ if __name__ == "__main__":
     # Parameters related to the servers used in the simulation
     parser.add_argument("--base-port", dest="basePort", default=7000)
     parser.add_argument("--port-offset", dest="portOffset",default=1000)
-    parser.add_argument("--num-slave-servers", dest="numSlaveServers",default=2)
+    parser.add_argument("--num-slave-servers", dest="numSlaveServers", default=0)
+    parser.add_argument("--server-event-file", dest="serverEventFilename")
     parser.add_argument("--server-config", dest="serverConfig", default="das_config.json")
 
+   # Example of parameters to invoke main --elap-time 15 --delayBetweenEvents 1 --gta-file WoWSession_Node_Player_Fixed_Dynamic_reduced.zip --server-event-file Server_Connectons_Disconnections.zip
 
     args = parser.parse_args()
 
@@ -183,6 +275,7 @@ if __name__ == "__main__":
     base_port = int(args.basePort)
     port_offset = int(args.portOffset)
     numSlaveServers = int(args.numSlaveServers)
+    serverEventFilename = args.serverEventFilename
     configurationFile = args.serverConfig
 
     # This list will contain pairs of players and the associated process.
@@ -190,11 +283,14 @@ if __name__ == "__main__":
     playersAndProcesses = {}
 
     # List of processes related to the servers used in the simulation (master + slaves)
-    serverProcesses = []
+    global serverProcesses
+    serverProcesses = {}
 
     # This lock is used to implement concurrency control on the list of players and processes which will be shared
     # accros multiple threads.
     lock = Lock()
+
+    serverLock = Lock()
 
     runningWindows = False
     if os.name == 'nt':
@@ -213,22 +309,34 @@ if __name__ == "__main__":
         serverAppLocation = os.path.join(fileDir, LOCATION_SERVER_APP_WINDOWS)
 
     # List of events still considering the timestamps read from the GTA file
-    listOfEvents = emulation.GTAEventsReader.LoadEventsFromFile(gtaFilename)
+    listOfEvents = emulation.GTAEventsReader.LoadEventsFromFile(gtaFilename, emulation.GTAEventsReader.MODE_PLAYERS)
 
-    # Normalize the timeStamps of the Login/Logout events using the time between the the first and last login/logout events
-    listOfNormalizedEvents = emulation.GTAEventsReader.NormalizeEvents(listOfEvents, simulationElapsedTimeInSeconds)
+    # Normalize the timeStamps of the Login/Logout events using the given simulation's elapsed time.
+    listOfNormalizedPlayerEvents = emulation.GTAEventsReader.NormalizeEvents(listOfEvents, simulationElapsedTimeInSeconds)
 
-    logger.info("Total number of Login/Logout events: " + str(len(listOfNormalizedEvents)))
+    logger.info("Total number of Login/Logout events: " + str(len(listOfNormalizedPlayerEvents)))
+
+    # List of server events
+    listOfEvents = None
+    listOfEvents = emulation.GTAEventsReader.LoadEventsFromFile(serverEventFilename, emulation.GTAEventsReader.MODE_SERVERS)
+
+    if listOfEvents is not None:
+        # Normalize the timeStamps of the server events using the given simulation's elapsed time.
+        listOfNormalizedServerEvents = emulation.GTAEventsReader.NormalizeEvents(listOfEvents, simulationElapsedTimeInSeconds)
+
+        logger.info("Total number of server events: " + str(len(listOfNormalizedServerEvents)))
+
 
     logger.info("Starting the simulation.")
     logger.info("Initializing servers.")
-    initializeServers(serverAppLocation, configurationFile, base_port, port_offset, numSlaveServers)
+    triggerServerEvents(serverAppLocation, configurationFile, base_port, port_offset, numSlaveServers, listOfNormalizedServerEvents)
 
     logger.info("Triggering events.")
-    triggerJoinLeaveEvents(listOfNormalizedEvents, lock, clientAppLocation, timeBetweenEvents)
+    triggerJoinLeaveEvents(listOfNormalizedPlayerEvents, lock, clientAppLocation, timeBetweenEvents)
 
-    logger.info("Killing the processes related to the servers.")
-    killServers(runningWindows)
+    if listOfEvents is None:
+        logger.info("List of server events not used - killing the processes related to the servers.")
+        killServers(runningWindows)
 
     print("This is the end of the simulation.")
 

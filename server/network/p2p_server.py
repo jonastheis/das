@@ -1,15 +1,18 @@
 import json
+import random
+
 from .base_server import BaseServer
 from .p2p_connection import P2PConnection
 import socket, threading
 import queue
 import logging
-from common.constants import MSG_TYPE
+from common.constants import MSG_TYPE, HEARTBEAT
+
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
 
 
 class P2PComponent(BaseServer):
-    def __init__(self, request_queue, response_queue, meta_request_queue, meta_response_queue, client_server, port, host="127.0.0.1", peers=[]):
+    def __init__(self, request_queue, response_queue, meta_request_queue, meta_response_queue, client_server, port, host="", peers=[]):
         """
         :param request_queue:
         :param response_queue:
@@ -34,9 +37,7 @@ class P2PComponent(BaseServer):
             # exclude self
             if peer == "{}:{}".format(host, port):
                 continue
-            self.connect_to_peer(peer.split(":")[0], peer.split(":")[1])
-
-        logger.info("Current Peers {}".format(self.connections))
+            threading.Thread(target=self.connect_to_peer, args=[peer.split(":")[0], peer.split(":")[1]]).start()
 
         self.listen()
         self.set_interval(self.heart_beat, 2)
@@ -80,8 +81,41 @@ class P2PComponent(BaseServer):
         new_peer = P2PConnection(connection, address, _id, self)
         self.connections[_id] = new_peer
 
+        self.distribute_clients()
+
     def create_id(self, host, port):
         return "peer@{}:{}".format(host, port)
+
+    def distribute_clients(self):
+        """
+        Tries to kill a number of clients to improve load balancing
+        The basic Ideas is:
+          - Calculate the total number of clients
+          - Calculate what is called fair_distribution by dividing it by the number of servers
+          - Kill the number of extra clients that I have
+        """
+        total_clients = 0
+        num_servers = len(self.connections) + 1
+
+        for peer in self.connections:
+            total_clients += self.connections[peer].peer_connections
+
+        # Add my own clients
+        total_clients += len(self.client_server.connections)
+
+        fair_distribution = int(total_clients / num_servers)
+        my_clients = len(self.client_server.connections)
+        if my_clients <= fair_distribution:
+            logger.debug("No need to kill clients [Total: {} / Fair: {} / My {}]".format(total_clients, fair_distribution, my_clients))
+
+        else:
+            num_connections_to_kill = my_clients - fair_distribution
+            connections_to_kill = random.sample(list(self.client_server.connections), num_connections_to_kill)
+
+            for client in connections_to_kill:
+                self.client_server.connections[client].shutdown(b_cast=False)
+
+            logger.info("Killed {} clients for load balancing".format(num_connections_to_kill))
 
     def heart_beat(self):
         """
@@ -90,9 +124,15 @@ class P2PComponent(BaseServer):
         #logger.debug("Sending heartbeat to {} peers".format(len(self.connections)))
         for connection in self.connections:
             try:
-                self.connections[connection].send(json.dumps({"type": MSG_TYPE.HBEAT}))
+                self.connections[connection].send(json.dumps({
+                    "type": MSG_TYPE.HBEAT,
+                    "payload": {
+                        "num_connections": len(self.client_server.connections)
+                    }
+                }))
             except BaseException as e:
                 logger.warning("Peer {} -> failed to send heartbeat".format(connection))
+                self.connections[connection].heartbeat -= HEARTBEAT.INC
 
         self.update_heartbeat_stat()
 
@@ -105,7 +145,7 @@ class P2PComponent(BaseServer):
                 if self.connections[peer_id].heartbeat < 0 :
                     self.remove_connection(peer_id)
                 else:
-                    self.connections[peer_id].heartbeat -= 1000
+                    self.connections[peer_id].heartbeat -= HEARTBEAT.INC
 
 
     def connect_to_peer(self, host, port):
