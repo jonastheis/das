@@ -45,7 +45,7 @@ class BaseServer(object):
         :param data: the data to be broadcasted
         :param without: broadcast to everyone except this client
         """
-        for client_id in self.connections:
+        for client_id in list(self.connections):
             if client_id != without:
                 try:
                     self.connections[client_id].send(data, type)

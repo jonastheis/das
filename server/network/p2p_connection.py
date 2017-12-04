@@ -10,9 +10,9 @@ logger = logging.getLogger("sys." + __name__.split(".")[-1])
 class P2PConnection(BaseConnection):
 
     def __init__(self, socket, address, id, server):
-        BaseConnection.__init__(self, socket, address, id)
         self.server = server
         self.heartbeat = 10000
+        BaseConnection.__init__(self, socket, address, id)
 
     def __str__(self):
         return BaseConnection.__str__(self) + " [hb:{}]".format(self.heartbeat)
