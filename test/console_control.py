@@ -77,7 +77,7 @@ class Server(object):
         port = id * 10000
 
         arguments = ['python3.6', '-m', 'server.app',
-                     '--config', 'test/das_config.json',
+                     '--config', 'test/das_config_console_control.json',
                      '--log-prefix', str(id),
                      '--port', str(port)]
         if master_node:
@@ -148,7 +148,7 @@ class Client(object):
             return
 
         arguments = ['python3.6', '-m', 'client.app',
-                     '--config', 'test/das_config.json',
+                     '--config', 'test/das_config_console_control.json',
                      '--log-prefix', str(id)]
 
         proc = subprocess.Popen(arguments)
