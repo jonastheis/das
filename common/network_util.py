@@ -1,8 +1,8 @@
 import struct
 import json
 
-SIZE_BYTES = 2
-STRUCT_IDENTIFIER = ">H"  # big-endian unsigned short (2 bytes)
+SIZE_BYTES = 4
+STRUCT_IDENTIFIER = ">I"  # big-endian unsigned short (2 bytes)
 
 
 def pack(data):

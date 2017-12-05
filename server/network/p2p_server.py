@@ -186,18 +186,6 @@ class P2PComponent(BaseServer):
         # right now we take the first response and assume that all servers are in sync with that state
         return self.init_queue.get()
 
-    def get_logs(self, peerId, logPrefix):
-        """
-        :param peerId: id of the peer to ask for logs
-        :return None. logs will be written internally.
-        """
-        logger.debug("Asking for logs from {}".format(peerId))
-        try:
-            self.connections[peerId].send(json.dumps({'type': MSG_TYPE.LOG}))
-        except BaseException as e:
-            logger.error("Failed to get logs from {}".format(peerId))
-
-
     def get_current_commands(self):
         """
         Gets the current pending commands and puts them back on the queue.

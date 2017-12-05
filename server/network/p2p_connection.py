@@ -1,7 +1,7 @@
 import json
 from .base_connection import BaseConnection
 from common import command
-from common.constants import MSG_TYPE, HEARTBEAT
+from common.constants import MSG_TYPE, HEARTBEAT, get_game_log, set_game_log
 
 import logging
 logger = logging.getLogger("sys." + __name__.split(".")[-1])
@@ -41,10 +41,13 @@ class P2PConnection(BaseConnection):
             self.send(json.dumps({
                 'type': MSG_TYPE.INIT_RES,
                 'initial_map': initial_map,
+                'log': get_game_log(),
                 'pending_commands': self.server.get_current_commands()
             }))
         elif json_data['type'] == MSG_TYPE.INIT_RES:
             self.server.init_queue.put(json_data['initial_map'])
+
+            set_game_log(json_data['log'])
 
             for command_json in json_data['pending_commands']:
                 self.server.request_queue.put_nowait(command.Command.from_json(command_json))

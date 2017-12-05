@@ -50,6 +50,8 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+game_file = None
+
 def add_coloring_to_emit_ansi(fn):
     # add methods we need to the class
     def new(*args):
@@ -73,6 +75,7 @@ def add_coloring_to_emit_ansi(fn):
     return new
 
 def init_logger(file, separate_game_log):
+    global game_file
     # Two base logger types
     sysLogger = logging.getLogger("sys")
     gameLogger = logging.getLogger("game")
@@ -113,3 +116,12 @@ def init_logger(file, separate_game_log):
     sysLogger.info("System Logger initialized")
     sysLogger.info("Game Logger initialized")
 
+def get_game_log():
+    with open(game_file) as gf:
+        logs = gf.read()
+        return logs
+
+def set_game_log(log):
+    with open(game_file, 'w') as gf:
+        logging.getLogger("sys").info("Previous game logs written to {}".format(game_file))
+        gf.write(log)
