@@ -45,6 +45,9 @@ class ClientServer(BaseServer):
         # add to pending connections as long as we don't know the id
         self.pending_connections[id] = new_client
 
+        self.udp_server.delay += TRANSPORT.UDP_DELAY_PER_PLAYER
+        logger.info("New UDP Delay value {}".format(self.udp_server.delay))
+
     def request_command(self, command):
         """
         Put a command on the request queue to the engine.
@@ -98,4 +101,3 @@ class ClientServer(BaseServer):
             del self.pending_connections[old_id]
 
         self.connections[new_id] = connection
-        self.udp_server.delay += TRANSPORT.UDP_DELAY_PER_PLAYER

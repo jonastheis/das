@@ -64,4 +64,4 @@ class BaseServer(object):
         # Reduce udp delay
         if hasattr(self, 'udp_server'):
             self.udp_server.delay -= TRANSPORT.UDP_DELAY_PER_PLAYER
-            logger.debug("New UDP Delay value {}".format(self.udp_server.delay))
+            logger.info("New UDP Delay value {}".format(self.udp_server.delay))

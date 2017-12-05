@@ -75,7 +75,7 @@ def add_coloring_to_emit_ansi(fn):
         return fn(*args)
     return new
 
-def init_logger(file, separate_game_log, log_lvl=10):
+def init_logger(file, separate_game_log=True, log_lvl=10):
     global game_file
     # Two base logger types
     sysLogger = logging.getLogger("sys")

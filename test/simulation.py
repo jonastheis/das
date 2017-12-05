@@ -39,7 +39,7 @@ def addClient(lock, event_details, clientApp, adjTimestamp):
         time.sleep(event_details.timeStamp - Decimal(adjTimestamp))
 
     # command line to start the client application: python ../client/app.py --log-prefix player_id
-    proc = subprocess.Popen([sys.executable, clientApp, '--log-prefix', event_details.playerId, '--config','das_config.json'])
+    proc = subprocess.Popen([sys.executable, "-m", "client.app", '--log-prefix', event_details.playerId, '--config','./test/das_config.json'])
 
     logger.debug("This is the playerId: " + event_details.playerId + " and this is the PID:" + str(proc.pid))
 
@@ -111,12 +111,15 @@ def triggerJoinLeaveEvents(listOfEventsToTrigger, lock, clientApp, delayBetweenE
     for single_thread in listOfThreads:
         single_thread.join()
 
-def addServer(event_details, serverApp, configFile, serverName, target_port):
+def addServer(event_details, serverApp, configFile, serverName, target_port, is_master):
 
     time.sleep(event_details.timeStamp)
     # Starting the server
     # command line to start the base server: python ../server/app.py --log-prefix player_id
-    proc = subprocess.Popen([sys.executable, serverApp, '--config', configFile, '--log-prefix', serverName, '--port', str(target_port)])
+    if is_master:
+        proc = subprocess.Popen([sys.executable, "-m", "server.app" ,'--users', 'test/das_map.json' , '--config', configFile, '--log-prefix', serverName, '--port', str(target_port)])
+    else:
+        proc = subprocess.Popen([sys.executable, "-m", "server.app" , '--config', configFile, '--log-prefix', serverName, '--port', str(target_port)])
 
     if proc.pid > 0:
         logger.info("Server" + serverName + "successfully added. Process Id: " + str(proc.pid))
@@ -138,10 +141,10 @@ def triggerServerEvents(serverApp, configFile, base_port, port_offset, numSlaveS
             if event.eventType == emulation.GTAEventsReader.SERVER_ADD:
 
                 if event.playerId == MASTER_SERVER:
-                    thread = Thread(target=addServer, args=(event, serverApp,configFile,MASTER_NODE_SERVER_NAME, base_port))
+                    thread = Thread(target=addServer, args=(event, serverApp,configFile,MASTER_NODE_SERVER_NAME, base_port, True))
                 else:
                     slave_port = base_port + port_offset * int(event.playerId)
-                    thread = Thread(target=addServer, args=(event, serverApp, configFile, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip(), str(slave_port)))
+                    thread = Thread(target=addServer, args=(event, serverApp, configFile, SLAVE_NODE_SERVER_NAME_PREFIX + str(event.playerId).strip(), str(slave_port), False))
                 thread.start()
             else:
                 if event.eventType == emulation.GTAEventsReader.SERVER_REMOVE:
@@ -260,7 +263,7 @@ if __name__ == "__main__":
     parser.add_argument("--port-offset", dest="portOffset",default=1000)
     parser.add_argument("--num-slave-servers", dest="numSlaveServers", default=0)
     parser.add_argument("--server-event-file", dest="serverEventFilename")
-    parser.add_argument("--server-config", dest="serverConfig", default="das_config.json")
+    parser.add_argument("--server-config", dest="serverConfig", default="./test/das_config.json")
 
    # Example of parameters to invoke main --elap-time 15 --delayBetweenEvents 1 --gta-file WoWSession_Node_Player_Fixed_Dynamic_reduced.zip --server-event-file Server_Connectons_Disconnections.zip
 

@@ -5,7 +5,7 @@ import zipfile
 import os
 import time
 from decimal import localcontext, Decimal
-from common.constants import init_logger
+import ntpath
 import logging
 
 
@@ -82,9 +82,11 @@ def LoadEventsFromFile(fileLocation, mode):
     logger.info("File extracted successfully.")
 
     # Removing the extension of the zip file: '.zip' assuming that the input file has the same name as the zip file.
-    extractedFileLocation = fileLocation[:-4]
+    # extractedFileLocation = fileLocation[:-4]
+    extractedFileZipName = ntpath.basename(fileLocation)
+    extractedFilename = extractedFileZipName[:-4]
 
-    eventsFile = open(extractedFileLocation, 'r')
+    eventsFile = open(extractedFilename, 'r')
 
     listOfEvents = []
     eventsExists = False
@@ -123,15 +125,14 @@ def LoadEventsFromFile(fileLocation, mode):
                 logger.error("Mode used to identify events is not known.")
 
 
-    logger.debug("Closing the extracted file: " + extractedFileLocation)
 
     # Closing the file extracted file
     eventsFile.close()
 
     #Removing the extracted file
-    logger.info("Removing the extracted file: " + extractedFileLocation)
+    logger.info("Removing the extracted file: " + extractedFilename)
 
-    os.remove(extractedFileLocation)
+    os.remove(extractedFilename)
 
     logger.info("Closing the zip file: " + fileLocation)
 
