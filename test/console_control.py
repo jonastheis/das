@@ -118,7 +118,7 @@ class Client(object):
     def create(count):
         for i in range(1, count+1):
             Client.start(i)
-            time.sleep(0.1)
+            time.sleep(0.5)
 
     @staticmethod
     def status():

@@ -99,7 +99,6 @@ def init_logger(file, separate_game_log, log_lvl=10):
     sysLogger.setLevel(log_lvl)
     sysLogger.addHandler(fileHandler)
 
-    gameLogger.addHandler(fileHandler)
     gameLogger.setLevel(log_lvl)
     if separate_game_log:
         game_file = file.split(".")[0] + "_game.log"
