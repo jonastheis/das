@@ -28,14 +28,13 @@ class ClientApp():
 
         self.my_user = next(filter(lambda el: el.id == self.id, self.game.users))
 
-    def generate_commands(self, iterations):
+    def generate_commands(self, iterations, malicious):
         """
         Run _generate_commands in a new thread
         """
-        threading.Thread(target=self._generate_commands, args=(iterations,)).start()
+        threading.Thread(target=self._generate_commands, args=(iterations, malicious)).start()
 
-
-    def _generate_commands(self, iterations):
+    def _generate_commands(self, iterations, malicious):
         """
         Generate simulation commands
         :param iterations: Number of iterations
@@ -43,7 +42,10 @@ class ClientApp():
         """
         logger.debug("Generating commands for {} iterations".format(iterations))
         for i in range(iterations):
-            new_command = self.simulate_player()
+            if not malicious:
+                new_command = self.simulate_player()
+            else:
+                new_command = self.simulate_malicious_player()
             # If there is no dragon and no one with hp<50%, no commands will be generated. In that case do nothing
             if new_command:
                 self.game.commands.append(new_command)
@@ -102,16 +104,58 @@ class ClientApp():
         logger.warning("Failed to find a simulation for player. Random walk it is...")
         return MoveCommand(self.id, random.choice([1, -1]), random.choice([DIRECTIONS.H, DIRECTIONS.V]))
 
-    def simulate_dragon(self):
+    def simulate_malicious_player(self):
         """
-        Simulate the behaviour of all dragons based on game spec
+        Simulate the actions of a malicious player
         :return: Command Object
         """
-        attacker_candidates = self.get_users_in_range(self.my_user.pos, 2, USERS.DRAGON)
-        if len(attacker_candidates):
-            attacker = random.choice(attacker_candidates)
-            return AttackCommand(attacker.id, self.id)
 
+        ######## Option 1: attack a close-by player
+        attack_candidates = self.get_users_in_range(self.my_user.pos, 1, USERS.PLAYER)
+        for user in attack_candidates:
+            if user.id != self.my_user.id:
+                return AttackCommand(self.id, user.id)
+
+        ######## Option 2: Heal a close by dragon
+        attack_candidates = self.get_users_in_range(self.my_user.pos, 2, USERS.DRAGON)
+        if len(attack_candidates):
+            target = attack_candidates[0]
+            return HealCommand(self.id, target.id)
+
+        ######## Option 3: Move toward the closest dragon
+        dragons = list(filter(lambda _user: _user.type == USERS.DRAGON, self.game.users))
+        if len(dragons):
+            # sort dragons by distance
+            # NOTE: we assume that the distance of the closest dragon is more than 2.
+            # Because otherwise we would have returned with an attack command
+            # TODO: this is the same as command.get_distance. make that a shared util function
+            dragons.sort(key=lambda dragon: math.fabs(dragon.pos[0]-self.my_user.pos[0]) + math.fabs(dragon.pos[1]-self.my_user.pos[1]))
+
+            # Move options: Move vertically toward that dragon or Horizontally
+            # If they are in the same row/col we know what to do
+            move_target = dragons[0]
+            value = None
+            move_direction = None
+
+            if self.my_user.pos[0] == move_target.pos[0]:
+                move_direction = DIRECTIONS.H
+            elif self.my_user.pos[1] == move_target.pos[1]:
+                move_direction = DIRECTIONS.V
+            else:
+                # If not, we choose randomly
+                move_direction = random.choice([DIRECTIONS.H, DIRECTIONS.V])
+
+
+            if move_direction == DIRECTIONS.H:
+                value = 10 if move_target.pos[1] > self.my_user.pos[1] else -10
+            else:
+                value = 10 if move_target.pos[0] > self.my_user.pos[0] else -10
+
+            if value and move_direction:
+                return MoveCommand(self.id, value, move_direction)
+
+        logger.warning("Failed to find a simulation for player. Random walk it is...")
+        return MoveCommand(self.id, random.choice([10, -10]), random.choice([DIRECTIONS.H, DIRECTIONS.V]))
 
     def get_users_in_range(self, point, limit, type=-1):
         """
@@ -133,18 +177,18 @@ class ClientApp():
 
         return users
 
-    def run(self, commands_per_second):
+    def run(self, commands_per_second, malicious):
         """
         :param commands_per_second: number of commands per second
         run _run in a new thread
         """
-        threading.Thread(target=self._run, args=(commands_per_second,)).start()
+        threading.Thread(target=self._run, args=(commands_per_second, malicious)).start()
 
-    def _run(self, command_per_second):
+    def _run(self, command_per_second, malicious):
         while self.game.up:
             time.sleep(1/command_per_second)
             # Generate one or max two new commands that will be appended to the end of the list
-            self._generate_commands(1)
+            self._generate_commands(1, malicious)
             if len(self.game.commands):
                 command_to_apply = self.game.commands.pop(0)
                 self.transport_layer.send_data(command_to_apply.to_json(), MSG_TYPE.COMMAND)
@@ -162,6 +206,7 @@ if __name__ == "__main__":
     parser.add_argument("--log-prefix", dest="prefix", default=time.time())
     parser.add_argument("--config", nargs="?", dest="config", required=True)
     parser.add_argument("--game-log", dest="gameLog", action="store_false", default=True)
+    parser.add_argument("--malicious", action="store_true", default=False)
 
     args = parser.parse_args()
 
@@ -175,7 +220,7 @@ if __name__ == "__main__":
     init_logger("log/client_{}.log".format(args.prefix), args.gameLog)
     client = ClientApp(servers)
 
-    client.run(.5)
+    client.run(.5, args.malicious)
 
     # start visualization
     if args.vis:
