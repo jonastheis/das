@@ -151,7 +151,7 @@ class Client(object):
             return
 
         arguments = ['python3.6', '-m', 'client.app',
-                     '--config', 'test/das_config_console_control.json',
+                     '--config', 'test/das_config.json',
                      '--log-prefix', str(id)]
 
         print("Starting Client {} with {}".format(id, arguments))

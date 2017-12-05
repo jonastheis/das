@@ -199,25 +199,34 @@ if __name__ == "__main__":
     --vis to enable/disable the visualizer
     --log-prefix to choose the file name of the log
     --config to pass list of possibly available game servers
+    
+    CRITICAL	50
+    ERROR	40
+    WARNING	30
+    INFO	20
+    DEBUG	10
+    NOTSET	0
     """
     parser = argparse.ArgumentParser(description="DAS Client app")
 
     parser.add_argument("--vis", action="store_true")
     parser.add_argument("--log-prefix", dest="prefix", default=time.time())
-    parser.add_argument("--config", nargs="?", dest="config", required=True)
+    parser.add_argument("--config", nargs="?", dest="config", required=False, default='./test/das_config.json')
     parser.add_argument("--game-log", dest="gameLog", action="store_false", default=True)
     parser.add_argument("--malicious", action="store_true", default=False)
+    parser.add_argument("--log-level", dest="logLevel", default="10")
 
     args = parser.parse_args()
+    args.logLevel = int(args.logLevel)
 
-    # get available servers
+    # get available server
     config = json.load((open(args.config)))
     servers = []
     for server in config['servers']:
         servers.append((server.split(':')[0], int(server.split(':')[1])))
 
 
-    init_logger("log/client_{}.log".format(args.prefix), args.gameLog)
+    init_logger("log/client_{}.log".format(args.prefix), args.gameLog, args.logLevel)
     client = ClientApp(servers)
 
     client.run(.5, args.malicious)

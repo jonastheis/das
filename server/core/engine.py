@@ -97,7 +97,7 @@ class Engine(multiprocessing.Process):
                 if status:
                     self.response_queue.put(command)
         else:
-            logger.warning("Interval reached. No command to process")
+            logger.debug("Interval reached. No command to process")
 
     def process_meta_requests(self):
         """
