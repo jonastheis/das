@@ -52,6 +52,8 @@ class UDPServer(object):
         :param address: the udp address from where the received message was sent
         """
         if data['type'] == MSG_TYPE.PING:
+            if self.delay <= 0:
+                self.delay = 0
             time.sleep(self.delay)
             send_udp_message(self.socket, address, MSG_TYPE.PING)
         else:

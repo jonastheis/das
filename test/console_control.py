@@ -85,7 +85,7 @@ class Server(object):
         port = id * 10000
 
         arguments = ['python3.6', '-m', 'server.app',
-                     '--config', 'test/das_config_console_control.json',
+                     '--config', 'test/das_config.json',
                      '--log-prefix', str(id),
                      '--port', str(port)]
         if master_node:
@@ -118,7 +118,7 @@ class Client(object):
     def create(count):
         for i in range(1, count+1):
             Client.start(i)
-            time.sleep(0.1)
+            time.sleep(0.5)
 
     @staticmethod
     def status():
@@ -146,7 +146,10 @@ class Client(object):
             client = clients[id]
             if client is None:
                 return
-            client.kill()
+            try:
+                client.kill()
+            except:
+                pass
         clients[id] = None
 
     @staticmethod
