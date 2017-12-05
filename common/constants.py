@@ -1,6 +1,7 @@
 import logging
 import os
 
+
 class ACTIONS:
     MOVE = 'move'
     HEAL = 'heal'
@@ -62,7 +63,7 @@ def add_coloring_to_emit_ansi(fn):
             color = '\x1b[31m' # red
         elif(levelno>=30):
             color = '\x1b[33m' # yellow
-        elif(levelno>=20):
+        elif(levelno >= 20):
             color = '\x1b[32m' # green
         elif(levelno>=10):
             color = '\x1b[94m' # pink
@@ -74,7 +75,7 @@ def add_coloring_to_emit_ansi(fn):
         return fn(*args)
     return new
 
-def init_logger(file, separate_game_log):
+def init_logger(file, separate_game_log, log_lvl=10):
     global game_file
     # Two base logger types
     sysLogger = logging.getLogger("sys")
@@ -95,11 +96,11 @@ def init_logger(file, separate_game_log):
     fileHandler.setFormatter(formatter)
 
     sysLogger.addHandler(fileHandler)
-    sysLogger.setLevel(logging.DEBUG)
+    sysLogger.setLevel(log_lvl)
     sysLogger.addHandler(fileHandler)
 
     gameLogger.addHandler(fileHandler)
-    gameLogger.setLevel(logging.DEBUG)
+    gameLogger.setLevel(log_lvl)
     if separate_game_log:
         game_file = file.split(".")[0] + "_game.log"
         open(game_file, 'w').close()
@@ -107,9 +108,6 @@ def init_logger(file, separate_game_log):
         gameFileHandler.setFormatter(formatter)
         gameLogger.addHandler(gameFileHandler)
 
-        # For now and just for ease of testing, I will write to both
-        # TODO: remove this line
-        gameLogger.addHandler(fileHandler)
     else:
         gameLogger.addHandler(fileHandler)
 

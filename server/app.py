@@ -15,17 +15,27 @@ if __name__ == '__main__':
     They are communication via a request and response queue.
     
     Initial user/dragons can be passed in the engine as a json array. Each object should have type, r, and c.
+    
+    CRITICAL	50
+    ERROR	40
+    WARNING	30
+    INFO	20
+    DEBUG	10
+    NOTSET	0
+    
     """
     parser = argparse.ArgumentParser(description='DAS Server app')
     parser.add_argument("--users", nargs="?", dest="users", required=False)
-    parser.add_argument("--config", nargs="?", dest="config", required=False)
+    parser.add_argument("--config", nargs="?", dest="config", required=False, default='./test/das_config.json')
     parser.add_argument("--port", nargs="?", dest="port" , default=TRANSPORT.port)
     parser.add_argument("--vis", action="store_true")
     parser.add_argument("--log-prefix", dest="prefix", default="DEFAULT")
     parser.add_argument("--game-log", dest="gameLog", action="store_false", default=True)
+    parser.add_argument("--log-level", dest="logLevel", default="10")
 
     args = parser.parse_args()
-    init_logger("log/server_{}.log".format(args.prefix), args.gameLog)
+    args.logLevel = int(args.logLevel)
+    init_logger("log/server_{}.log".format(args.prefix), args.gameLog, args.logLevel)
 
     request_queue = multiprocessing.Queue()
     response_queue = multiprocessing.Queue()
