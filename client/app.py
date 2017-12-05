@@ -169,7 +169,7 @@ if __name__ == "__main__":
     parser.add_argument("--log-prefix", dest="prefix", default=time.time())
     parser.add_argument("--config", nargs="?", dest="config", required=False, default='./test/das_config.json')
     parser.add_argument("--game-log", dest="gameLog", action="store_false", default=True)
-    parser.add_argument("--log-level", dest="logLevel", default="10")
+    parser.add_argument("--log-level", dest="logLevel", default="20")
 
     args = parser.parse_args()
     args.logLevel = int(args.logLevel)
