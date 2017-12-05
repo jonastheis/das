@@ -26,6 +26,7 @@ class Engine(multiprocessing.Process):
         self.game = game.Game()
         self.game.is_server = True
         self.vis = vis
+
         for user in initial_users:
             self.game.add_user(User(user['type']), user['r'], user['c'])
 
@@ -61,20 +62,36 @@ class Engine(multiprocessing.Process):
 
             time.sleep((time_sync - time_ms) / 1000)
 
+
     def get_all_requests(self):
         """
         Gets all events in a burst manner from the queue.
         :return: list of all the events sorted by timestamp
         """
-        commands = []
+        current_tick = time.time()
+        all_commands = []
+        exec_commands = []
+
         while True:
             try:
-                commands.append(self.request_queue.get_nowait())
+                all_commands.append(self.request_queue.get_nowait())
             except queue.Empty:
                 break
         # sort list by timestamp
-        commands.sort(key=lambda command: (command.timestamp, command.client_id))
-        return commands
+        all_commands.sort(key=lambda command: (command.timestamp, command.client_id))
+
+        threshold = self.T / 2000
+
+        for command in all_commands:
+            print(current_tick, command.timestamp, current_tick-command.timestamp , threshold)
+            if current_tick - command.timestamp < threshold :
+                logger.error("Putting back {}".format(command))
+                self.request_queue.put(command)
+            else:
+                exec_commands.append(command)
+
+
+        return exec_commands
 
     def process_commands(self):
         """

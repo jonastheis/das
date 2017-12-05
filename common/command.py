@@ -56,8 +56,8 @@ class Command(object):
         elif json_data['type'] == 'PlayerLeaveCommand':
             command_obj = PlayerLeaveCommand(
                 json_data['client_id'],
-                json_data['timestamp'],
-                json_data['is_killed'])
+                json_data['is_killed'],
+                json_data['timestamp'])
 
         elif json_data['type'] == 'AttackCommand':
             command_obj = AttackCommand(
