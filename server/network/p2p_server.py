@@ -66,7 +66,6 @@ class P2PComponent(BaseServer):
         while True:
             command = self.client_server.broadcast_queue.get()
             logger.debug("Broadcasting {}".format(command))
-            # TODO: check whether to_json_broadcast always works
             self.broadcast(json.dumps({"type": MSG_TYPE.BCAST, "command": command.to_json_broadcast()}))
 
     def on_connection(self, connection, address):

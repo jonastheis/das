@@ -73,7 +73,7 @@ class Engine(multiprocessing.Process):
             except queue.Empty:
                 break
         # sort list by timestamp
-        commands.sort(key=lambda command: command.timestamp)
+        commands.sort(key=lambda command: (command.timestamp, command.client_id))
         return commands
 
     def process_commands(self):

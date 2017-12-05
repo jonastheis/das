@@ -57,7 +57,6 @@ class Game:
             return True
 
     def remove_user_by_id(self, user_id):
-        # TODO we can change this loop to search in self.clients
         for i in range(self.row):
             for j in range(self.col):
                 if self.map[i][j] != 0 and self.map[i][j].id == user_id:
