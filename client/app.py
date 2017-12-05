@@ -75,7 +75,6 @@ class ClientApp():
             # sort dragons by distance
             # NOTE: we assume that the distance of the closest dragon is more than 2.
             # Because otherwise we would have returned with an attack command
-            # TODO: this is the same as command.get_distance. make that a shared util function
             dragons.sort(key=lambda dragon: math.fabs(dragon.pos[0]-self.my_user.pos[0]) + math.fabs(dragon.pos[1]-self.my_user.pos[1]))
 
             # Move options: Move vertically toward that dragon or Horizontally
@@ -128,7 +127,6 @@ class ClientApp():
             # sort dragons by distance
             # NOTE: we assume that the distance of the closest dragon is more than 2.
             # Because otherwise we would have returned with an attack command
-            # TODO: this is the same as command.get_distance. make that a shared util function
             dragons.sort(key=lambda dragon: math.fabs(dragon.pos[0]-self.my_user.pos[0]) + math.fabs(dragon.pos[1]-self.my_user.pos[1]))
 
             # Move options: Move vertically toward that dragon or Horizontally

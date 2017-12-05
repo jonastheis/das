@@ -39,7 +39,6 @@ class Command(object):
 
     @classmethod
     def from_json(cls, json_str):
-        # TODO: there should be a better way to fix this
         json_data = json.loads(json_str)
         if json_data['type'] == 'MoveCommand':
             command_obj = MoveCommand(
