@@ -11,6 +11,7 @@ clients = {}
 fileDir = os.path.dirname(os.path.realpath('__file__'))
 sys.path.append(fileDir)
 
+
 def extract_id(text):
     id = -1
     try:
@@ -83,6 +84,8 @@ class Server(object):
         if master_node:
             arguments.extend(['--users', 'test/das_map.json'])
 
+        print("Starting Server {} with {}".format(id, arguments))
+
         proc = subprocess.Popen(arguments)
 
         servers[id] = psutil.Process(proc.pid)
@@ -151,6 +154,8 @@ class Client(object):
                      '--config', 'test/das_config.json',
                      '--log-prefix', str(id)]
 
+        print("Starting Client {} with {}".format(id, arguments))
+
         proc = subprocess.Popen(arguments)
 
         clients[id] = psutil.Process(proc.pid)
@@ -169,7 +174,7 @@ server.kill {id}  - kills server with {id}
 server.killall - kills all servers
 
 client.status - prints up/down status of clients
-client.create {no} - creates {no} clients
+client.init {no} - creates {no} clients
 client.start {id} - starts client with {id}
 client.kill {id} - kills client with {id}
 client.killall - kills all clients
@@ -187,9 +192,3 @@ exit - quits the console helper
             Client.handle(text)
         else:
             print('Unknown command, type help to see all available commands.')
-
-
-
-
-#proc = subprocess.Popen([sys.executable, clientApp, '--log-prefix', event_details.playerId])
-

@@ -215,9 +215,15 @@ class AttackCommand(Command):
         if attacker == 0:
             gLogger.error("Command {} failed. Attacker not found".format(self.__str__()))
             return False
+        if attacker.type != USERS.PLAYER:
+            gLogger.error("Commnd {} failed. Dragons can't attack autonomously".format(self.__str__()))
+            return False
 
         if target == 0:
             gLogger.error("Command {} failed. Target not found".format(self.__str__()))
+            return False
+        if target.type != USERS.DRAGON:
+            gLogger.error("Command {} failed. Can't attack users".format(self.__str__()))
             return False
 
         attacker_row, attacker_col = attacker.pos
