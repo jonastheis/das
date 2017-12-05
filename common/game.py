@@ -27,9 +27,9 @@ class Game:
 
     def add_user(self, p, r=-1, c=-1):
         if r == -1 and c == -1:
-            for i in range(self.row):
+            for i in range(10 , self.row):
                 broken = False
-                for j in range(self.col):
+                for j in range(10 , self.col):
                     if self.map[i][j] == 0:
                         r, c = i, j
                         broken = True
