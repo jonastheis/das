@@ -89,7 +89,7 @@ class Server(object):
                      '--log-prefix', str(id),
                      '--port', str(port)]
         if master_node:
-            arguments.extend(['--users', 'test/das_map.json'])
+            arguments.extend(['--users', 'test/das_hell.json'])
 
         print("Starting Server {} with {}".format(id, arguments))
 
