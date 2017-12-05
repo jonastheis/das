@@ -85,11 +85,11 @@ class Server(object):
         port = id * 10000
 
         arguments = ['python3.6', '-m', 'server.app',
-                     '--config', 'test/das_config_console_control.json',
+                     '--config', 'test/das_config.json',
                      '--log-prefix', str(id),
                      '--port', str(port)]
         if master_node:
-            arguments.extend(['--users', 'test/das_map.json'])
+            arguments.extend(['--users', 'test/das_hell.json'])
 
         print("Starting Server {} with {}".format(id, arguments))
 
@@ -146,7 +146,10 @@ class Client(object):
             client = clients[id]
             if client is None:
                 return
-            client.kill()
+            try:
+                client.kill()
+            except:
+                pass
         clients[id] = None
 
     @staticmethod

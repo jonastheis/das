@@ -38,7 +38,6 @@ class BaseServer(object):
     def on_connection(self, connection, address):
         pass
 
-
     def broadcast(self, data, without=None, type=None):
         """
         Broadcast the data to all connections except "without".
@@ -49,7 +48,7 @@ class BaseServer(object):
             if client_id != without:
                 try:
                     self.connections[client_id].send(data, type)
-                except BaseException as e:
+                except:
                     logger.error("Failed sending message to {} : data {}".format(self.connections[client_id], data))
 
     def remove_connection(self, id):
