@@ -97,7 +97,7 @@ class P2PComponent(BaseServer):
         total_clients = 0
         num_servers = len(self.connections) + 1
 
-        for peer in self.connections:
+        for peer in list(self.connections):
             total_clients += self.connections[peer].peer_connections
 
         # Add my own clients
@@ -180,11 +180,23 @@ class P2PComponent(BaseServer):
             try:
                 self.connections[connection].send(json.dumps({'type': MSG_TYPE.INIT_REQ}))
             except BaseException as e:
-                logger.warning("Peer {} -> failed to request initial game state".format(connection))
+                logger.warning("Peer {} -> failed to request initial game state [{}]".format(connection, e))
 
         # wait for init_res of other servers -> will be put on the init_queue
         # right now we take the first response and assume that all servers are in sync with that state
         return self.init_queue.get()
+
+    def get_logs(self, peerId, logPrefix):
+        """
+        :param peerId: id of the peer to ask for logs
+        :return None. logs will be written internally.
+        """
+        logger.debug("Asking for logs from {}".format(peerId))
+        try:
+            self.connections[peerId].send(json.dumps({'type': MSG_TYPE.LOG}))
+        except BaseException as e:
+            logger.error("Failed to get logs from {}".format(peerId))
+
 
     def get_current_commands(self):
         """

@@ -1,4 +1,7 @@
 import socket, threading, select, json
+
+import sys
+
 from common.network_util import read_message, pack, TCPConnectionError, send_udp_message, read_udp_message
 from common.constants import *
 from common.command import Command
@@ -146,5 +149,5 @@ class ClientTransport:
             if count > 5:
                 logger.error('Could not connect to any server. Terminate.')
                 self.game.up = False
-                return
+                sys.exit()
             count += 1

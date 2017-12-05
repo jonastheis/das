@@ -56,6 +56,9 @@ if __name__ == '__main__':
         engine = Engine(request_queue, response_queue, meta_request_queue, meta_response_queue, initial_users, args.vis)
         engine.game.from_serialized_map(initial_state)
         engine.start()
+
+        # If a server has initial users, it will need no other logs, if not, it will be gathered here
+
     else:
         engine = Engine(request_queue, response_queue, meta_request_queue, meta_response_queue, initial_users, args.vis)
         engine.start()

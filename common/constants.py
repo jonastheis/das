@@ -34,6 +34,8 @@ class MSG_TYPE:
 
     PING = 'ping'
 
+    LOG = 'log_req'
+
 class HEARTBEAT:
     INIT = 30
     INC = 10
@@ -104,7 +106,7 @@ def init_logger(file, separate_game_log):
 
         # For now and just for ease of testing, I will write to both
         # TODO: remove this line
-        # gameLogger.addHandler(fileHandler)
+        gameLogger.addHandler(fileHandler)
     else:
         gameLogger.addHandler(fileHandler)
 
