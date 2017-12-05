@@ -17,7 +17,7 @@ def extract_id(text):
     try:
         id = int(text.split(' ')[1])
     except:
-        print('No id provided. please try again.')
+        print('No id/no provided. please try again.')
     return id
 
 
@@ -47,9 +47,16 @@ class Server(object):
         for id, server in servers.items():
             if server is None:
                 status = 'killed'
+                client_connections = 0
+                p2p_connections = 0
             else:
                 status = 'running'
-            print('Server {}: {}'.format(id, status))
+                # 1 UDP socket, 2 TCP server sockets #### and x.laddr.port == id*1000+10
+                active_connections = list(filter(lambda x: x.status == 'ESTABLISHED', server.connections()))
+                client_connections = len(list(filter(lambda x: x.laddr.port == id*10000, active_connections)))
+                p2p_connections = len(active_connections) - client_connections
+
+            print('Server {}: {}\tp2p: {}, clients: {}'.format(id, status, p2p_connections, client_connections))
 
     @staticmethod
     def kill(id):
@@ -118,15 +125,17 @@ class Client(object):
         for id, client in clients.items():
             if client is None:
                 status = 'killed'
+                connected_to = 0
             else:
                 try:
                     status = client.as_dict()['status']
-                    if status == 'zombie':
-                        status = 'killed'
-                except:
+                    connected_to = list(filter(lambda x: x.status == 'ESTABLISHED', client.connections()))[0].raddr.port
+                    connected_to = int(connected_to / 10000)
+                except Exception as e:
+                    connected_to = 0
                     status = 'killed'
                     clients[id] = None
-            print('Client {}: {}'.format(id, status))
+            print('Client {}: {}\tserver: {}'.format(id, status, connected_to))
 
     @staticmethod
     def kill(id):
