@@ -78,18 +78,17 @@ class Engine(multiprocessing.Process):
             except queue.Empty:
                 break
         # sort list by timestamp
-        all_commands.sort(key=lambda command: (command.timestamp, command.client_id))
 
         threshold = self.T / 2000
 
         for command in all_commands:
-            print(current_tick, command.timestamp, current_tick-command.timestamp , threshold)
             if current_tick - command.timestamp < threshold :
                 logger.error("Putting back {}".format(command))
                 self.request_queue.put(command)
             else:
                 exec_commands.append(command)
 
+        exec_commands.sort(key=lambda command: (command.timestamp, command.client_id))
 
         return exec_commands
 
