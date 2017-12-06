@@ -14,7 +14,7 @@ class DIRECTIONS:
 class TRANSPORT:
     host = '0.0.0.0'
     port = 8000
-    UDP_DELAY_PER_PLAYER = .05
+    UDP_DELAY_PER_PLAYER = .001
 
 class USERS:
     PLAYER = 'p'

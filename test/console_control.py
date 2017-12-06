@@ -24,8 +24,9 @@ def extract_id(text):
 class Server(object):
     @staticmethod
     def handle(text):
-        if text == 'server.init':
-            for i in range(1, 6):
+        if text.startswith('server.init'):
+            no = extract_id(text)
+            for i in range(1, no+1):
                 if i == 1:
                     Server.start(i, master_node=True)
                 else:

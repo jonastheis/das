@@ -145,6 +145,7 @@ class ClientTransport:
                     udp_sock.close()
                     return address
 
+            logger.warning("Attempt {}. No success with any server".format(count))
             # terminate client after 5 unsuccessful tries
             if count > 5:
                 logger.error('Could not connect to any server. Terminate.')

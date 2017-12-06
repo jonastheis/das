@@ -83,7 +83,7 @@ class Engine(multiprocessing.Process):
 
         for command in all_commands:
             if current_tick - command.timestamp < threshold :
-                logger.error("Putting back {}".format(command))
+                logger.debug("Putting back {}".format(command))
                 self.request_queue.put(command)
             else:
                 exec_commands.append(command)
