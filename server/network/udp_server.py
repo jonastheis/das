@@ -51,7 +51,6 @@ class UDPServer(object):
         :param data: the data received as a dictionary
         :param address: the udp address from where the received message was sent
         """
-        logger.critical("UDP SERVER FROM {} => {}".format(data, address))
         if data['type'] == MSG_TYPE.PING:
             time.sleep(self.delay)
             send_udp_message(self.socket, address, MSG_TYPE.PING)

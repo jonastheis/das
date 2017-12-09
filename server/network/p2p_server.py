@@ -41,6 +41,7 @@ class P2PComponent(BaseServer):
 
         self.listen()
         self.set_interval(self.heart_beat, 2)
+        self.set_interval(self.distribute_clients, 10)
 
         request_thread = threading.Thread(target=self.broadcast_requests)
         request_thread.start()
@@ -93,6 +94,7 @@ class P2PComponent(BaseServer):
           - Calculate what is called fair_distribution by dividing it by the number of servers
           - Kill the number of extra clients that I have
         """
+        logger.info("Distributing Clients...")
         total_clients = 0
         num_servers = len(self.connections) + 1
 
