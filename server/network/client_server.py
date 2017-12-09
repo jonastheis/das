@@ -101,3 +101,4 @@ class ClientServer(BaseServer):
             del self.pending_connections[old_id]
 
         self.connections[new_id] = connection
+        logger.info("New Total number of clients {}".format(len(self.connections)))
