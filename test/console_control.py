@@ -85,7 +85,7 @@ class Server(object):
 
         port = id * 10000
 
-        arguments = ['python3.6', '-m', 'server.app',
+        arguments = ['python', '-m', 'server.app',
                      '--config', 'test/das_config.json',
                      '--log-prefix', str(id),
                      '--port', str(port)]
@@ -163,7 +163,7 @@ class Client(object):
         if id == -1:
             return
 
-        arguments = ['python3.6', '-m', 'client.app',
+        arguments = ['python', '-m', 'client.app',
                      '--config', 'test/das_config.json',
                      '--log-prefix', str(id)]
 
@@ -181,7 +181,7 @@ if __name__ == '__main__':
         if text == 'help':
             print("""
 server.status - prints up/down status of servers
-server.init - spawns 5 servers
+server.init {no} - creates {no} servers, the first with map 'test/das_hell.json'
 server.start {id} - starts server with {id}
 server.kill {id}  - kills server with {id}
 server.killall - kills all servers
