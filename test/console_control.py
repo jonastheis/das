@@ -180,13 +180,13 @@ if __name__ == '__main__':
 
         if text == 'help':
             print("""
-server.status - prints up/down status of servers
+server.status - prints up/down status of servers and currently active connections/connected clients
 server.init {no} - creates {no} servers, the first with map 'test/das_hell.json'
 server.start {id} - starts server with {id}
 server.kill {id}  - kills server with {id}
 server.killall - kills all servers
 
-client.status - prints up/down status of clients
+client.status - prints up/down status of clients and to which server they are connected
 client.init {no} - creates {no} clients
 client.start {id} - starts client with {id}
 client.kill {id} - kills client with {id}

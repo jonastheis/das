@@ -31,7 +31,7 @@ $ pip install -r requirements.txt
 ```
 
 ## Run with console tool
-With the console tool it's a breeze to create several servers or clients on the current machine without visualizer for test purposes. Just start the console tool and type help to see all available commands.
+With the console tool it's a breeze to create several servers or clients on the current machine without visualizer for test purposes. Just start the console tool and type `help` to see all available commands.
 Logs for the servers and clients will be created in the `log` directory according to the id of the server/client.
 
 Before starting a server with the tool, please make sure that the ports are available on your system. The console tool creates the first server on port `TCP/UDP 10000` and `TCP 10010`.
@@ -41,13 +41,13 @@ The second server will be started at `TCP/UDP 20000` and `TCP 20010`, the third 
 $ python -m test.console_control
 >> help
 
-server.status - prints up/down status of servers
+server.status - prints up/down status of servers and currently active connections/connected clients
 server.init {no} - creates {no} servers, the first with map 'test/das_hell.json'
 server.start {id} - starts server with {id}
 server.kill {id}  - kills server with {id}
 server.killall - kills all servers
 
-client.status - prints up/down status of clients
+client.status - prints up/down status of clients and to which server they are connected
 client.init {no} - creates {no} clients
 client.start {id} - starts client with {id}
 client.kill {id} - kills client with {id}
