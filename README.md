@@ -8,8 +8,8 @@ The project was developed in the course *Distributed Systems* lectured by prof. 
 A full description of the game, requirements, design and conducted experiments can be found in the [documentation](assets/documentation.pdf) (pdf).
 
 ## Screenshots
-<span><img src="assets/screen-game.png?raw=true" /></span>
-<span><img src="assets/screen-console-tool.png?raw=true" /></span>
+<div style="text-align:center"><img src="assets/screen-game.png?raw=true" /></div>
+<div style="text-align:center"><img src="assets/screen-console-tool.png?raw=true" /></div>
 
 ## System Design
 In the big picture the application seems to follow the classical client-(authoritative) server model. A client connects to *- in our case –* any server and is ready to play.
@@ -17,7 +17,7 @@ In the big picture the application seems to follow the classical client-(authori
 However, the server component as a whole is a reliable, mirrored, distributed peer-to-peer system where a client connects to the closest server (lowest latency).
 Within this peer-to-peer network the servers share all incoming commands and render the game logic in a synchronized way and broadcast changes to the connected clients. 
 
-<span><img src="assets/server-design.png?raw=true" width="300px" /></span>
+<div style="text-align:center"><img src="assets/server-design.png?raw=true" width="500px" /></div>
 
 Each server module is divided into three main components, each performing isolated tasks.
 The server component consists of a *Game Engine*, a *Server for clients* and a *Peer-to-Peer server* that other servers can use to establish a connection to. 
